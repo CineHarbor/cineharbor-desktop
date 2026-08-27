@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.cineharbor.desktop",
   "build": {
-    "beforeDevCommand": "pnpm desktop:dev:bootstrap",
-    "beforeBuildCommand": "pnpm desktop:build:frontend && pnpm desktop:prepare:sidecar:release",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
     "devUrl": "http://127.0.0.1:3000",
     "frontendDist": "../desktop-shell-dist"
   },
@@ -85,7 +85,7 @@
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "targets": "all",
     "icon": [
       "icons/32x32.png",

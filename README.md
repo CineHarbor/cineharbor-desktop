@@ -31,5 +31,6 @@ pnpm tauri build
 ## 说明 / 待办
 
 - **updater 签名公钥未轮换**：`tauri.conf.json` 里 `plugins.updater.pubkey` 仍沿用旧项目公钥，
-  发版前必须用新密钥对重签并替换，端点已指向 `CineHarbor/cineharbor-desktop@desktop-updater`。
+  发版前必须用新密钥对重签并替换（同时把 `bundle.createUpdaterArtifacts` 恢复为 `true`，
+  并设 `TAURI_SIGNING_PRIVATE_KEY`），端点已指向 `CineHarbor/cineharbor-desktop@desktop-updater`。
 - 应用图标（`src-tauri/icons/`）仍为旧项目资源，待 P6 品牌资产到位后整体替换。
