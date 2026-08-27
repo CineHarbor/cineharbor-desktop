@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CineHarbor Desktop",
+  "version": "0.1.0",
+  "identifier": "com.cineharbor.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm desktop:dev:bootstrap",
+    "beforeBuildCommand": "pnpm desktop:build:frontend && pnpm desktop:prepare:sidecar:release",
+    "devUrl": "http://127.0.0.1:3000",
+    "frontendDist": "../desktop-shell-dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "CineHarbor Desktop",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1080,
+        "minHeight": 720,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "base-uri": ["'self'"],
+        "connect-src": [
+          "'self'",
+          "ipc:",
+          "http://ipc.localhost",
+          "http://127.0.0.1:8787",
+          "http:",
+          "https:"
+        ],
+        "default-src": ["'self'"],
+        "font-src": ["'self'"],
+        "form-action": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "frame-src": ["'none'"],
+        "img-src": ["'self'", "data:", "blob:", "http:", "https:"],
+        "manifest-src": ["'self'"],
+        "media-src": ["'self'", "blob:", "http:", "https:"],
+        "object-src": ["'none'"],
+        "script-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "worker-src": ["'self'", "blob:"]
+      },
+      "devCsp": {
+        "base-uri": ["'self'"],
+        "connect-src": [
+          "'self'",
+          "ipc:",
+          "http://ipc.localhost",
+          "http://127.0.0.1:8787",
+          "ws://127.0.0.1:3000",
+          "http:",
+          "https:"
+        ],
+        "default-src": ["'self'"],
+        "font-src": ["'self'"],
+        "form-action": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "frame-src": ["'none'"],
+        "img-src": ["'self'", "data:", "blob:", "http:", "https:"],
+        "manifest-src": ["'self'"],
+        "media-src": ["'self'", "blob:", "http:", "https:"],
+        "object-src": ["'none'"],
+        "script-src": ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "worker-src": ["'self'", "blob:"]
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://raw.githubusercontent.com/CineHarbor/cineharbor-desktop/desktop-updater/latest.json",
+        "https://hkcu.qzz.io/api/desktop/updater/latest?repo=CineHarbor%2Fcineharbor-desktop&branch=desktop-updater"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE0RTE5RUU4MkRCMUI3OTIKUldTU3Q3RXQ2SjdocE40NUg4OWdQOFdyNjBPalI1RkNldDQyelNLNmVxcVRsaytVZkpha0xkRmgK",
+      "windows": {
+        "installMode": "quiet"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": ["binaries/cineharbor-local-service"]
+  }
+}

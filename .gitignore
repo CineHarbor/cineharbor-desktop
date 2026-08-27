@@ -5,3 +5,8 @@
 .env
 .env*.local
 .DS_Store
+/target
+**/target/
+/src-tauri/binaries/
+/src-tauri/gen/
+/desktop-shell-dist
