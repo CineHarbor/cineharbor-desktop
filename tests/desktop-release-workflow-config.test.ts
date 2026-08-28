@@ -76,17 +76,9 @@ describe('desktop release workflow config', () => {
 
     expect(releaseDoc).not.toContain('.github/workflows/desktop-build.yml');
     expect(releaseDoc).not.toContain('internal prerelease');
-    expect(releaseDoc).toContain('from the `desktop` branch');
-    expect(releaseDoc).not.toContain('from the `desktop` or `main` branch');
-    expect(releaseDoc).not.toContain('other than `main`');
-  });
-
-  it('treats desktop as the only branch for page-only download-site updates', () => {
-    const workflow = readProjectFile('.github/workflows/download-site.yml');
-
-    expect(workflow).toMatch(/branches:\s*\n\s+- desktop(?:\s|$)/);
-    expect(workflow).not.toMatch(
-      /branches:\s*\n(?:\s+- [^\n]+\n)*\s+- main(?:\s|$)/
-    );
+    expect(releaseDoc).not.toContain('LunaTV');
+    expect(releaseDoc).not.toContain('jaytantech3000');
+    expect(releaseDoc).toContain('from the `main` branch');
+    expect(releaseDoc).toContain('cineharbor-download-site');
   });
 });

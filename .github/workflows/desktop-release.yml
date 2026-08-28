@@ -87,8 +87,8 @@ jobs:
       CARGO_TERM_COLOR: always
       NEXT_TELEMETRY_DISABLED: 1
       JAMENDO_CLIENT_ID: ${{ vars.JAMENDO_CLIENT_ID }}
-      SITE_BASE: ${{ vars.SITE_BASE || 'https://hkcu.qzz.io' }}
-      LUNATV_RELEASE_REPOSITORY: ${{ github.repository }}
+      SITE_BASE: ${{ vars.SITE_BASE || '' }}
+      CINEHARBOR_RELEASE_REPOSITORY: ${{ github.repository }}
       NEXT_PUBLIC_RELEASE_REPOSITORY: ${{ github.repository }}
       APPLE_SIGNING_IDENTITY: '-'
 
@@ -147,13 +147,31 @@ jobs:
       - name: Sync updater endpoint
         run: pnpm desktop:sync:updater-config
 
-      - name: Prepare Windows desktop frontend
-        if: runner.os == 'Windows'
-        run: pnpm desktop:build:frontend
+      - name: Checkout web frontend source
+        uses: actions/checkout@v5
+        with:
+          repository: CineHarbor/cineharbor-web
+          path: cicd-web
+          ref: main
 
-      - name: Prepare Windows desktop sidecar
-        if: runner.os == 'Windows'
-        run: pnpm desktop:prepare:sidecar:release
+      - name: Build desktop frontend
+        shell: bash
+        run: |
+          cd cicd-web
+          pnpm install --frozen-lockfile
+          node scripts/build-desktop-frontend.mjs
+          cd ..
+          cp -R cicd-web/desktop-shell-dist desktop-shell-dist
+
+      - name: Checkout core sidecar source
+        uses: actions/checkout@v5
+        with:
+          repository: CineHarbor/cineharbor-core
+          path: cicd-core
+          ref: main
+
+      - name: Build desktop sidecar
+        run: node scripts/sync-desktop-sidecar.mjs --release --core-dir cicd-core
 
       - name: Build and upload release assets
         uses: tauri-apps/tauri-action@action-v0.6.2
@@ -364,33 +382,3 @@ jobs:
 
       - name: Publish desktop updater manifest
         run: node scripts/publish-desktop-updater-manifest.mjs --tag "${{ github.ref_name }}"
-
-  publish_download_site:
-    name: Publish Download Site
-    runs-on: ubuntu-latest
-    needs: publish_updater_manifest
-    permissions:
-      contents: write
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOWNLOAD_SITE_COMMIT_MESSAGE: 'chore(download-site): publish site for ${{ github.ref_name }}'
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          package-manager-cache: false
-
-      - name: Export download site data
-        run: node scripts/export-download-site-data.mjs --output .download-site-build/releases.json
-
-      - name: Build download site
-        run: node scripts/build-download-site.mjs --data .download-site-build/releases.json --output download-site-dist
-
-      - name: Publish download site branch
-        shell: bash
-        run: bash scripts/publish-download-site-branch.sh

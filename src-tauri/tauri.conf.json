@@ -146,8 +146,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://raw.githubusercontent.com/CineHarbor/cineharbor-desktop/desktop-updater/latest.json",
-        "https://hkcu.qzz.io/api/desktop/updater/latest?repo=CineHarbor%2Fcineharbor-desktop&branch=desktop-updater"
+        "https://raw.githubusercontent.com/CineHarbor/cineharbor-desktop/desktop-updater/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJEMEREMTNDRjUwQkMyOUEKUldTYXdndjFQTkVOTFJGRlkyVmdPUDQ5ZG9xcEZqRDZ3akJ5VmNVNjQzQ1RYMy91WllNQTEzSUQK",
       "windows": {
