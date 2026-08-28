@@ -1,0 +1,31 @@
+{
+  "version": "0.1.0",
+  "notes": "",
+  "pub_date": "2026-08-28T14:07:01.027Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFY3cnZzSmZYc3BLVXFoZ1NRSzE1WkhVZU8rYlVEbUZwSU9CUVZVOWx6WTE5Z0E5TXhCYlh3amc0cGY1M3g3ZGdaZm5sZVhsdGhyckNRNnpXbzdLY2dJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI1NTY0CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wLmFwcC50YXIuZ3oKdnFreTZTVjJiV3VBbzlseVdPWUlEcksrenE2THpIRVBRVU5qaWFMLzA5OXo0Q1l6aG9Tc2tXOWUrZ0tCT1JVZERnUzh4RnJDR3o1cWx3MFVOQVJkQ1E9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_macos-arm64.app.tar.gz"
+    },
+    "darwin-aarch64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFY3cnZzSmZYc3BLVXFoZ1NRSzE1WkhVZU8rYlVEbUZwSU9CUVZVOWx6WTE5Z0E5TXhCYlh3amc0cGY1M3g3ZGdaZm5sZVhsdGhyckNRNnpXbzdLY2dJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI1NTY0CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wLmFwcC50YXIuZ3oKdnFreTZTVjJiV3VBbzlseVdPWUlEcksrenE2THpIRVBRVU5qaWFMLzA5OXo0Q1l6aG9Tc2tXOWUrZ0tCT1JVZERnUzh4RnJDR3o1cWx3MFVOQVJkQ1E9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_macos-arm64.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFQ1eFFqUHlicjhqZmFmK3lPT25meFM2TWdiN042N21GSm50MkNZUmpaMWQzOW9PSThmMWpyMkdoVXUvbHlLZmVGQTFRVGN3cGNNemNtVlZwRUhsUHdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI1NzM2CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wLmFwcC50YXIuZ3oKcWJsNkZnNFhNQ3kwdWpCZFlTNHp2TU5uUmp2WnFBNmhVWmZpa1ZLWHRvcFNUNmJ2aFFzd3pGUUY1TUlTeHRXZHY3VHkrUk9TUW1aUnNaRzJucmE3RGc9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_macos-x64.app.tar.gz"
+    },
+    "darwin-x86_64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFQ1eFFqUHlicjhqZmFmK3lPT25meFM2TWdiN042N21GSm50MkNZUmpaMWQzOW9PSThmMWpyMkdoVXUvbHlLZmVGQTFRVGN3cGNNemNtVlZwRUhsUHdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI1NzM2CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wLmFwcC50YXIuZ3oKcWJsNkZnNFhNQ3kwdWpCZFlTNHp2TU5uUmp2WnFBNmhVWmZpa1ZLWHRvcFNUNmJ2aFFzd3pGUUY1TUlTeHRXZHY3VHkrUk9TUW1aUnNaRzJucmE3RGc9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_macos-x64.app.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFM1SENMak5BcER5R3FDVlgyMmhpbXJ2RjNtQStkYk1JR3BsQjl3QzZzRTV6NE80U09iNFpSbEtvL3RtRllhaWpEZEczVnFQbkMxcXhnUzQvYklKQmc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI2MDE4CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wXzAuMS4wX3g2NC1zZXR1cC5leGUKQWh6d2JvV3paNm9NSis2NzBXSDZYaGxzMEdvNGFYdlAxYSt1ZWNmYUJlbysyWEJnQ3VPSEJVeWxteWs4WThNamJ4WUorN2FWZkQ4aHU3aVZvK2tHQ0E9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_windows-x64-setup.exe"
+    },
+    "windows-x86_64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTYXdndjFQTkVOTFM1SENMak5BcER5R3FDVlgyMmhpbXJ2RjNtQStkYk1JR3BsQjl3QzZzRTV6NE80U09iNFpSbEtvL3RtRllhaWpEZEczVnFQbkMxcXhnUzQvYklKQmc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3OTI2MDE4CWZpbGU6Q2luZUhhcmJvciBEZXNrdG9wXzAuMS4wX3g2NC1zZXR1cC5leGUKQWh6d2JvV3paNm9NSis2NzBXSDZYaGxzMEdvNGFYdlAxYSt1ZWNmYUJlbysyWEJnQ3VPSEJVeWxteWs4WThNamJ4WUorN2FWZkQ4aHU3aVZvK2tHQ0E9PQo=",
+      "url": "https://github.com/CineHarbor/cineharbor-desktop/releases/download/desktop-v0.1.0/CineHarbor.Desktop_0.1.0_windows-x64-setup.exe"
+    }
+  }
+}
