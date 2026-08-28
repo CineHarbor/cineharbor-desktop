@@ -5600,21 +5600,21 @@ mod tests {
     fn accepts_only_https_github_release_compare_urls() {
         assert_eq!(
             build_release_compare_api_url(
-                "https://github.com/jaytantech3000/CineHarbor/compare/desktop-v1...desktop-v2"
+                "https://github.com/CineHarbor/cineharbor-desktop/compare/desktop-v1...desktop-v2"
             )
             .expect("valid GitHub compare URL")
             .as_str(),
-            "https://api.github.com/repos/jaytantech3000/CineHarbor/compare/desktop-v1...desktop-v2"
+            "https://api.github.com/repos/CineHarbor/cineharbor-desktop/compare/desktop-v1...desktop-v2"
         );
         assert!(
             build_release_compare_api_url(
-                "https://example.com/jaytantech3000/CineHarbor/compare/a...b"
+                "https://example.com/CineHarbor/cineharbor-desktop/compare/a...b"
             )
             .is_err()
         );
         assert!(
             build_release_compare_api_url(
-                "http://github.com/jaytantech3000/CineHarbor/compare/a...b"
+                "http://github.com/CineHarbor/cineharbor-desktop/compare/a...b"
             )
             .is_err()
         );
@@ -5712,12 +5712,12 @@ mod tests {
     #[test]
     fn normalizes_release_repository_slug_when_owner_and_repo_are_present() {
         assert_eq!(
-            normalize_release_repository_slug(" jaytantech3000/CineHarbor "),
-            Some("jaytantech3000/CineHarbor".to_string())
+            normalize_release_repository_slug(" CineHarbor/cineharbor-desktop "),
+            Some("CineHarbor/cineharbor-desktop".to_string())
         );
-        assert_eq!(normalize_release_repository_slug("jaytantech3000"), None);
+        assert_eq!(normalize_release_repository_slug("CineHarbor"), None);
         assert_eq!(
-            normalize_release_repository_slug("jaytantech3000 / CineHarbor"),
+            normalize_release_repository_slug("CineHarbor / cineharbor-desktop"),
             None
         );
     }

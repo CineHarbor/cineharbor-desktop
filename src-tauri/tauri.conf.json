@@ -23,7 +23,9 @@
     ],
     "security": {
       "csp": {
-        "base-uri": ["'self'"],
+        "base-uri": [
+          "'self'"
+        ],
         "connect-src": [
           "'self'",
           "ipc:",
@@ -32,21 +34,56 @@
           "http:",
           "https:"
         ],
-        "default-src": ["'self'"],
-        "font-src": ["'self'"],
-        "form-action": ["'self'"],
-        "frame-ancestors": ["'none'"],
-        "frame-src": ["'none'"],
-        "img-src": ["'self'", "data:", "blob:", "http:", "https:"],
-        "manifest-src": ["'self'"],
-        "media-src": ["'self'", "blob:", "http:", "https:"],
-        "object-src": ["'none'"],
-        "script-src": ["'self'"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "worker-src": ["'self'", "blob:"]
+        "default-src": [
+          "'self'"
+        ],
+        "font-src": [
+          "'self'"
+        ],
+        "form-action": [
+          "'self'"
+        ],
+        "frame-ancestors": [
+          "'none'"
+        ],
+        "frame-src": [
+          "'none'"
+        ],
+        "img-src": [
+          "'self'",
+          "data:",
+          "blob:",
+          "http:",
+          "https:"
+        ],
+        "manifest-src": [
+          "'self'"
+        ],
+        "media-src": [
+          "'self'",
+          "blob:",
+          "http:",
+          "https:"
+        ],
+        "object-src": [
+          "'none'"
+        ],
+        "script-src": [
+          "'self'"
+        ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'"
+        ],
+        "worker-src": [
+          "'self'",
+          "blob:"
+        ]
       },
       "devCsp": {
-        "base-uri": ["'self'"],
+        "base-uri": [
+          "'self'"
+        ],
         "connect-src": [
           "'self'",
           "ipc:",
@@ -56,18 +93,53 @@
           "http:",
           "https:"
         ],
-        "default-src": ["'self'"],
-        "font-src": ["'self'"],
-        "form-action": ["'self'"],
-        "frame-ancestors": ["'none'"],
-        "frame-src": ["'none'"],
-        "img-src": ["'self'", "data:", "blob:", "http:", "https:"],
-        "manifest-src": ["'self'"],
-        "media-src": ["'self'", "blob:", "http:", "https:"],
-        "object-src": ["'none'"],
-        "script-src": ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "worker-src": ["'self'", "blob:"]
+        "default-src": [
+          "'self'"
+        ],
+        "font-src": [
+          "'self'"
+        ],
+        "form-action": [
+          "'self'"
+        ],
+        "frame-ancestors": [
+          "'none'"
+        ],
+        "frame-src": [
+          "'none'"
+        ],
+        "img-src": [
+          "'self'",
+          "data:",
+          "blob:",
+          "http:",
+          "https:"
+        ],
+        "manifest-src": [
+          "'self'"
+        ],
+        "media-src": [
+          "'self'",
+          "blob:",
+          "http:",
+          "https:"
+        ],
+        "object-src": [
+          "'none'"
+        ],
+        "script-src": [
+          "'self'",
+          "'unsafe-eval'",
+          "'unsafe-inline'"
+        ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'"
+        ],
+        "worker-src": [
+          "'self'",
+          "blob:"
+        ]
       }
     }
   },
@@ -77,7 +149,7 @@
         "https://raw.githubusercontent.com/CineHarbor/cineharbor-desktop/desktop-updater/latest.json",
         "https://hkcu.qzz.io/api/desktop/updater/latest?repo=CineHarbor%2Fcineharbor-desktop&branch=desktop-updater"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE0RTE5RUU4MkRCMUI3OTIKUldTU3Q3RXQ2SjdocE40NUg4OWdQOFdyNjBPalI1RkNldDQyelNLNmVxcVRsaytVZkpha0xkRmgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJEMEREMTNDRjUwQkMyOUEKUldTYXdndjFQTkVOTFJGRlkyVmdPUDQ5ZG9xcEZqRDZ3akJ5VmNVNjQzQ1RYMy91WllNQTEzSUQK",
       "windows": {
         "installMode": "quiet"
       }
@@ -85,7 +157,7 @@
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": false,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -94,6 +166,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/cineharbor-local-service"]
+    "externalBin": [
+      "binaries/cineharbor-local-service"
+    ]
   }
 }
