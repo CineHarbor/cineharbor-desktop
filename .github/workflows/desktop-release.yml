@@ -161,6 +161,13 @@ jobs:
           path: cicd-core
           ref: main
 
+      - name: Checkout addon-sdk dependency
+        uses: actions/checkout@v5
+        with:
+          repository: CineHarbor/cineharbor-addon-sdk
+          path: cineharbor-addon-sdk
+          ref: main
+
       - name: Build desktop sidecar
         run: node scripts/sync-desktop-sidecar.mjs --release --core-dir cicd-core
 
