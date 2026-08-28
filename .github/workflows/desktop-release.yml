@@ -1,0 +1,396 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - desktop-v*
+
+concurrency:
+  group: desktop-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  csp_preflight:
+    name: Validate Tauri CSP Contract
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10.14.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Tauri CSP contract
+        run: pnpm check:tauri-csp
+
+  ensure_release:
+    name: Ensure GitHub Release
+    runs-on: ubuntu-latest
+    needs: csp_preflight
+    outputs:
+      release_id: ${{ steps.ensure_release.outputs.release_id }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          package-manager-cache: false
+
+      - name: Create or update release from tag
+        id: ensure_release
+        run: node scripts/ensure-desktop-release.mjs --tag "${{ github.ref_name }}" --target "${{ github.sha }}" --github-output "$GITHUB_OUTPUT"
+
+  publish_release:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    needs: ensure_release
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Intel
+            runner: macos-15-intel
+            args: --target x86_64-apple-darwin
+          - name: macOS Apple Silicon
+            runner: macos-15
+            args: --target aarch64-apple-darwin
+          - name: Windows x64
+            runner: windows-2022
+            args: --bundles nsis --config src-tauri/tauri.windows.ci.conf.json
+
+    env:
+      CI: true
+      HUSKY: 0
+      CARGO_TERM_COLOR: always
+      NEXT_TELEMETRY_DISABLED: 1
+      JAMENDO_CLIENT_ID: ${{ vars.JAMENDO_CLIENT_ID }}
+      SITE_BASE: ${{ vars.SITE_BASE || 'https://hkcu.qzz.io' }}
+      LUNATV_RELEASE_REPOSITORY: ${{ github.repository }}
+      NEXT_PUBLIC_RELEASE_REPOSITORY: ${{ github.repository }}
+      APPLE_SIGNING_IDENTITY: '-'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10.14.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build outputs
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Tauri CSP contract
+        run: pnpm check:tauri-csp
+
+      - name: Sync desktop version
+        run: node scripts/sync-desktop-version.mjs --tag "${{ github.ref_name }}"
+
+      - name: Validate updater signing secret
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "Missing TAURI_SIGNING_PRIVATE_KEY secret"
+            exit 1
+          fi
+
+      - name: Validate Jamendo client id
+        shell: bash
+        run: |
+          if [ -z "$JAMENDO_CLIENT_ID" ]; then
+            echo "Missing JAMENDO_CLIENT_ID repository variable"
+            exit 1
+          fi
+
+      - name: Sync updater endpoint
+        run: pnpm desktop:sync:updater-config
+
+      - name: Prepare Windows desktop frontend
+        if: runner.os == 'Windows'
+        run: pnpm desktop:build:frontend
+
+      - name: Prepare Windows desktop sidecar
+        if: runner.os == 'Windows'
+        run: pnpm desktop:prepare:sidecar:release
+
+      - name: Build and upload release assets
+        uses: tauri-apps/tauri-action@action-v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: .
+          releaseId: ${{ needs.ensure_release.outputs.release_id }}
+          tagName: ${{ github.ref_name }}
+          releaseDraft: false
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          tauriScript: pnpm exec tauri
+          args: ${{ matrix.args }}
+
+  release_outcome:
+    name: Evaluate Release Outcome
+    runs-on: ubuntu-latest
+    needs: publish_release
+    if: ${{ always() }}
+    outputs:
+      should_publish: ${{ steps.evaluate.outputs.should_publish }}
+      summary_conclusion: ${{ steps.evaluate.outputs.summary_conclusion }}
+      success_count: ${{ steps.evaluate.outputs.success_count }}
+      total_count: ${{ steps.evaluate.outputs.total_count }}
+      succeeded_platforms: ${{ steps.evaluate.outputs.succeeded_platforms }}
+      failed_platforms: ${{ steps.evaluate.outputs.failed_platforms }}
+    permissions:
+      actions: read
+
+    steps:
+      - name: Evaluate desktop build results
+        id: evaluate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const publishJobNames = new Set([
+              'macOS Intel',
+              'macOS Apple Silicon',
+              'Windows x64',
+            ]);
+            const jobs = await github.paginate(
+              github.rest.actions.listJobsForWorkflowRun,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              }
+            );
+            const publishJobs = jobs.filter((job) =>
+              publishJobNames.has(job.name)
+            );
+
+            if (publishJobs.length === 0) {
+              core.setFailed(
+                'No desktop platform build jobs were found for this workflow run.'
+              );
+              return;
+            }
+
+            const succeededPlatforms = publishJobs
+              .filter((job) => job.conclusion === 'success')
+              .map((job) => job.name);
+            const failedPlatforms = publishJobs
+              .filter((job) => job.conclusion !== 'success')
+              .map((job) => `${job.name} (${job.conclusion || 'unknown'})`);
+            const successCount = publishJobs.filter(
+              (job) => job.conclusion === 'success'
+            ).length;
+            const totalCount = publishJobs.length;
+            const summaryConclusion =
+              successCount === 0
+                ? 'failure'
+                : successCount === publishJobs.length
+                ? 'success'
+                : 'neutral';
+            core.info(
+              `Desktop platform builds succeeded: ${successCount}/${publishJobs.length}.`
+            );
+            core.setOutput(
+              'should_publish',
+              successCount > 0 ? 'true' : 'false'
+            );
+            core.setOutput('summary_conclusion', summaryConclusion);
+            core.setOutput('success_count', String(successCount));
+            core.setOutput('total_count', String(totalCount));
+            core.setOutput(
+              'succeeded_platforms',
+              JSON.stringify(succeededPlatforms)
+            );
+            core.setOutput('failed_platforms', JSON.stringify(failedPlatforms));
+
+            if (successCount === 0) {
+              core.notice(
+                'No desktop platform build succeeded. Downstream publish jobs will be skipped.'
+              );
+            }
+
+  publish_release_summary:
+    name: Publish Release Summary
+    runs-on: ubuntu-latest
+    needs: [publish_release, release_outcome]
+    if: ${{ always() }}
+    permissions:
+      checks: write
+
+    steps:
+      - name: Publish desktop platform summary check
+        uses: actions/github-script@v7
+        env:
+          SUMMARY_CONCLUSION: ${{ needs.release_outcome.outputs.summary_conclusion }}
+          SUCCESS_COUNT: ${{ needs.release_outcome.outputs.success_count }}
+          TOTAL_COUNT: ${{ needs.release_outcome.outputs.total_count }}
+          SUCCEEDED_PLATFORMS: ${{ needs.release_outcome.outputs.succeeded_platforms }}
+          FAILED_PLATFORMS: ${{ needs.release_outcome.outputs.failed_platforms }}
+        with:
+          script: |
+            const successCount = Number(process.env.SUCCESS_COUNT || '0');
+            const totalCount = Number(process.env.TOTAL_COUNT || '0');
+            const summaryConclusion =
+              process.env.SUMMARY_CONCLUSION || 'failure';
+            const succeededPlatforms = JSON.parse(
+              process.env.SUCCEEDED_PLATFORMS || '[]'
+            );
+            const failedPlatforms = JSON.parse(
+              process.env.FAILED_PLATFORMS || '[]'
+            );
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const title =
+              summaryConclusion === 'success'
+                ? `All desktop platforms succeeded: ${successCount}/${totalCount}`
+                : summaryConclusion === 'neutral'
+                ? `Partial failure: ${successCount}/${totalCount} desktop platforms succeeded`
+                : `All desktop platforms failed: ${successCount}/${totalCount} succeeded`;
+
+            const summaryLines = [
+              `Workflow run: ${runUrl}`,
+              '',
+              `Succeeded platforms (${succeededPlatforms.length}):`,
+              ...(succeededPlatforms.length > 0
+                ? succeededPlatforms.map((platform) => `- ${platform}`)
+                : ['- none']),
+              '',
+              `Failed platforms (${failedPlatforms.length}):`,
+              ...(failedPlatforms.length > 0
+                ? failedPlatforms.map((platform) => `- ${platform}`)
+                : ['- none']),
+            ];
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Desktop Platform Build Summary',
+              head_sha: context.sha,
+              status: 'completed',
+              conclusion: summaryConclusion,
+              output: {
+                title,
+                summary: summaryLines.join('\n'),
+              },
+            });
+
+  normalize_release_assets:
+    name: Normalize Release Assets
+    runs-on: ubuntu-latest
+    needs: [publish_release, release_outcome]
+    if: ${{ always() && needs.release_outcome.outputs.should_publish == 'true' }}
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          package-manager-cache: false
+
+      - name: Normalize desktop release assets
+        run: node scripts/normalize-desktop-release-assets.mjs --tag "${{ github.ref_name }}"
+
+  publish_updater_manifest:
+    name: Publish Updater Manifest
+    runs-on: ubuntu-latest
+    needs: normalize_release_assets
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          package-manager-cache: false
+
+      - name: Publish desktop updater manifest
+        run: node scripts/publish-desktop-updater-manifest.mjs --tag "${{ github.ref_name }}"
+
+  publish_download_site:
+    name: Publish Download Site
+    runs-on: ubuntu-latest
+    needs: publish_updater_manifest
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DOWNLOAD_SITE_COMMIT_MESSAGE: 'chore(download-site): publish site for ${{ github.ref_name }}'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          package-manager-cache: false
+
+      - name: Export download site data
+        run: node scripts/export-download-site-data.mjs --output .download-site-build/releases.json
+
+      - name: Build download site
+        run: node scripts/build-download-site.mjs --data .download-site-build/releases.json --output download-site-dist
+
+      - name: Publish download site branch
+        shell: bash
+        run: bash scripts/publish-download-site-branch.sh

@@ -5,9 +5,15 @@
   "scripts": {
     "tauri": "tauri",
     "build": "tauri build",
-    "dev": "tauri dev"
+    "dev": "tauri dev",
+    "test": "jest"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.0"
+    "@tauri-apps/cli": "^2.11.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.4.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.9.3"
   }
 }
