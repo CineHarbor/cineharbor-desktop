@@ -2,22 +2,20 @@
 
 Target: **1.0.0 release-ready**, not final publication. **RELEASE_READY = false; PUBLIC_RELEASE_EXECUTED = false.** The facade owns the seven-repository release matrix.
 
-The Tauri shell owns local-service lifecycle, native account/profile orchestration, diagnostics and signed updates. Sidecar source remains in cineharbor-core. Main previously had no native CI; its tag workflow could expose a public release before builds and accept partial platform success. Both are release blockers, not evidence of completed P5 acceptance.
+The Tauri shell owns local-service lifecycle, native account/profile orchestration, diagnostics and signed updates. Sidecar source remains in cineharbor-core. Candidate creation is draft-only, rejects existing public releases, requires all three expected platform jobs and does not update the live updater branch. Existing approved updater public key and production CSP boundaries are preserved.
 
-## Candidate safety and reproducibility — 2026-09-19
+Core/SDK/Web sources are pinned in ci/dependencies.json. Builds use Rust 1.98.1, Node 22 and pnpm 10.14.0. Sidecar builds use --locked, explicit targets, actual Cargo output directories and target/version/SHA256 provenance. Version synchronization updates the owned Cargo.lock entry without changing other dependencies. The isolated Web exporter preserves live source files.
 
-Candidate creation is now draft-only and rejects existing public releases. All three expected platform jobs must complete successfully before candidate normalization; partial, missing, duplicate or cancelled jobs cannot be green. Candidate preparation no longer updates the live updater branch.
+## Observed native CI and repair — 2026-09-19
 
-Core, SDK and the verified isolated Web Desktop exporter are bound to immutable commits in ci/dependencies.json. Native builds use Rust 1.98.1, Node 22 and pnpm 10.14.0. Sidecar builds use --locked, an explicit target and Cargo's actual output directory, then record target/version/SHA256. Version synchronization also updates the owned Cargo.lock entry and desktop metadata, preserving other dependency versions. The production CSP now permits bundled WASM compilation without ordinary JavaScript unsafe-eval or remote script sources. Overlays cannot replace app.security.
+Main baseline e75f214c9d78a8b64addcbbc1bb5df2932495ad9, run 35438175264: portable quality and the actual frontend export passed. All three native platforms passed sidecar build, cargo check and tests. Strict Clippy failed on each. Both macOS unsigned bundles built; Windows bundling failed because tauri.windows.conf.json reintroduced nonexistent scripts/desktop-before-build.mjs. A metadata-only artifact upload was not a Windows installer success.
 
-The new main CI covers portable release/CSP/tooling tests, actual WASM/frontend export and native check/test/strict Clippy/installers on macOS arm64/x64 and Windows x64. Unsigned CI bundles are explicitly separate from signed RC and real updater acceptance. Workflow configuration is not a pass; actual remote results must be inspected.
+The Windows overlay now uses explicit prebuilt frontend/sidecar preparation, matching the base config. Four regression cases cover base and platform/CI overlays; the new test was observed failing against the original Windows config. Local validation with verified frozen dependencies: typecheck, 44 Jest tests, 20 Node tests and CSP contract passed. The exact proposed Rust diagnostic repair passed rustfmt 1.98.1; reproduced postimage and stale-preimage rejection were verified locally. Full native compilation is not claimed from the local Linux environment.
 
-Observed local validation: Node v22.16.0 typecheck and CSP contract passed; 44 existing/extended Jest tests and 16 Node regressions passed, zero skips. The pinned Web exporter actually compiled WASM and 17 Desktop pages. Baseline Desktop Rust formatting failed; a bounded one-time normalizer will publish the owned formatting diff with a coherent checkpoint and retire itself. Native compiler and bundle results remain pending execution; no local Linux native acceptance is claimed.
+**DESKTOP_CI_REPAIR = pending.**
 
-Existing public updater key is preserved; secret existence, real signed old-to-new upgrade, installed playback/download, data preservation, diagnostics redaction and external production service readiness remain separate obligations. User instructions authorize autonomous fixes and pushes, not fabricated acceptance or final public release.
+A bounded one-time writer applies only the reviewed lib.rs preimage to its fixed SHA256 postimage, runs portable gates, updates this checkpoint, deletes itself and verifies a non-forced main push before dispatching native CI. Pending means the Rust repair is a prepared candidate, not yet applied. See .agnir/evidence/2026-09-19-desktop-native-ci-repair.md for hashes and observations. No compiler gate has been removed or relaxed.
 
-Project identity urn:cineharbor:project:cineharbor-desktop, lineage urn:cineharbor:lineage:cineharbor-desktop; Agnir Core/Profile 1.0 / repository-filesystem/1.0; operations 1.0.2 at b5626394ec40a5cb7a28c01892acde07cc0adc8e are unchanged. License: CC-BY-NC-SA-4.0.
+Signed RC packaging, actual installed playback/download, a real signed old-to-new upgrade with retained data, sidecar/UI compatibility, diagnostics redaction, deployment readiness and security/license review remain separate obligations. Unsigned build success does not close these gates.
 
-## Applied formatting checkpoint
-
-Owned Rust formatting now passes with Rust 1.98.1. The one-time normalizer was removed. Native CI and signed upgrade acceptance remain separately required; RELEASE_READY remains false.
+Project identity urn:cineharbor:project:cineharbor-desktop; lineage urn:cineharbor:lineage:cineharbor-desktop. Agnir Core/Profile 1.0 / repository-filesystem/1.0 and operations 1.0.2 at b5626394ec40a5cb7a28c01892acde07cc0adc8e are unchanged. License CC-BY-NC-SA-4.0.
