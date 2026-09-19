@@ -80,6 +80,14 @@ describe('Tauri CSP contract', () => {
     expect(result.stdout).toContain('Tauri CSP contract passed.');
   });
 
+  it('allows WASM compilation without permitting dynamic JavaScript evaluation', () => {
+    const config = cloneConfig();
+    expect(config.app.security.csp['script-src']).toContain("'wasm-unsafe-eval'");
+    expect(config.app.security.csp['script-src']).not.toContain("'unsafe-eval'");
+    config.app.security.csp['script-src'] = ["'self'"];
+    expectRejected(runCspCheck(config), /csp.*script-src/);
+  });
+
   it.each(['csp', 'devCsp'] as const)(
     'rejects an extra directive in %s',
     (policyName) => {
@@ -113,6 +121,7 @@ describe('Tauri CSP contract', () => {
   it.each([
     ['csp', 'connect-src', 'wss://127.0.0.1:3000'],
     ['csp', 'script-src', "'unsafe-inline'"],
+    ['csp', 'script-src', "'unsafe-eval'"],
     ['devCsp', 'connect-src', 'wss://127.0.0.1:3000'],
     ['devCsp', 'style-src', "'unsafe-eval'"],
   ] as const)(

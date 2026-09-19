@@ -69,7 +69,8 @@
           "'none'"
         ],
         "script-src": [
-          "'self'"
+          "'self'",
+          "'wasm-unsafe-eval'"
         ],
         "style-src": [
           "'self'",
@@ -130,7 +131,8 @@
         "script-src": [
           "'self'",
           "'unsafe-eval'",
-          "'unsafe-inline'"
+          "'unsafe-inline'",
+          "'wasm-unsafe-eval'"
         ],
         "style-src": [
           "'self'",

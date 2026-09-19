@@ -6,7 +6,7 @@ function readProjectFile(relativePath: string) {
 }
 
 describe('desktop release workflow config', () => {
-  it('keeps only the public desktop release workflow', () => {
+  it('keeps the desktop candidate workflow and no legacy build flow', () => {
     expect(
       existsSync(
         path.join(process.cwd(), '.github/workflows/desktop-build.yml')
@@ -14,7 +14,7 @@ describe('desktop release workflow config', () => {
     ).toBe(false);
 
     const workflow = readProjectFile('.github/workflows/desktop-release.yml');
-    expect(workflow).toContain('name: Release Desktop App');
+    expect(workflow).toContain('name: Prepare Desktop Release Candidate');
   });
 
   it('runs the CSP contract as a release preflight before any public release can exist', () => {

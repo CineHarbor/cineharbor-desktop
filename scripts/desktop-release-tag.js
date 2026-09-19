@@ -22,7 +22,7 @@ function buildDesktopReleaseDescriptor({ tagName }) {
       version,
       title: `CineHarbor Desktop ${version}`,
       prerelease: false,
-      draft: false,
+      draft: true,
     };
   }
 
@@ -33,7 +33,7 @@ function buildDesktopReleaseDescriptor({ tagName }) {
       version,
       title: `CineHarbor Desktop ${baseVersion} Beta ${sequence}`,
       prerelease: true,
-      draft: false,
+      draft: true,
     };
   }
 

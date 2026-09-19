@@ -114,6 +114,18 @@ function planWorkspaceCargoVersion(content, version) {
   return content === updatedContent ? null : updatedContent;
 }
 
+function planLockedShellVersion(content, version) {
+  const blocks = content.split(/(?=^\[\[package\]\]\s*$)/m);
+  const indexes = blocks.flatMap((block, index) => /^name\s*=\s*"cineharbor-desktop-shell"\s*$/m.test(block) ? [index] : []);
+  if (indexes.length !== 1) throw new Error('Expected exactly one locked desktop shell package');
+  const index = indexes[0];
+  const matches = [...blocks[index].matchAll(/^version\s*=\s*"([^"\r\n]+)"\s*$/gm)];
+  if (matches.length !== 1 || /^source\s*=/m.test(blocks[index])) throw new Error('Ambiguous or nonlocal locked desktop shell');
+  if (matches[0][1] === version) return null;
+  blocks[index] = blocks[index].replace(/^(version\s*=\s*")[^"\r\n]+("\s*)$/m, `$1${version}$2`);
+  return blocks.join('');
+}
+
 function resolveVersion(args, metadata) {
   const explicitVersion = args.get('version');
   if (explicitVersion) {
@@ -144,11 +156,15 @@ async function main() {
     'tauri.conf.json'
   );
   const cargoTomlPath = path.join(projectRoot, 'Cargo.toml');
-  const [packageJsonContent, tauriConfigContent, cargoTomlContent] =
+  const lockPath = path.join(projectRoot, 'Cargo.lock');
+  const metadataPath = path.join(projectRoot, 'src/config/desktop-release.json');
+  const [packageJsonContent, tauriConfigContent, cargoTomlContent, lockContent, metadataContent] =
     await Promise.all([
       fs.readFile(packageJsonPath, 'utf8'),
       fs.readFile(tauriConfigPath, 'utf8'),
       fs.readFile(cargoTomlPath, 'utf8'),
+      fs.readFile(lockPath, 'utf8'),
+      fs.readFile(metadataPath, 'utf8'),
     ]);
   const plannedWrites = [
     [
@@ -160,6 +176,8 @@ async function main() {
       planJsonVersionWrite(tauriConfigPath, tauriConfigContent, version),
     ],
     [cargoTomlPath, planWorkspaceCargoVersion(cargoTomlContent, version)],
+    [lockPath, planLockedShellVersion(lockContent, version)],
+    [metadataPath, JSON.parse(metadataContent).desktopVersion === version ? null : JSON.stringify({ ...JSON.parse(metadataContent), desktopVersion: version }, null, 2) + '\n'],
   ];
 
   for (const [filePath, content] of plannedWrites) {

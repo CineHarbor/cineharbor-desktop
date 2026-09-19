@@ -1,0 +1,183 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  HUSKY: '0'
+
+jobs:
+  quality:
+    name: Release safety, tooling and Rust formatting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10.14.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test --runInBand
+      - run: pnpm test:tooling
+      - run: pnpm check:tauri-csp
+      - run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt
+      - run: cargo fmt --all -- --check
+      - run: git diff --exit-code
+
+  frontend:
+    name: Pinned WASM and real Desktop static export
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: workspace/cineharbor-desktop
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: workspace/cineharbor-desktop
+          persist-credentials: false
+      - run: python3 scripts/ci-checkout.py
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10.14.0
+          package_json_file: workspace/cineharbor-desktop/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: workspace/cineharbor-web/pnpm-lock.yaml
+      - name: Install pinned WASM toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.98.1 --profile minimal --target wasm32-unknown-unknown
+          version=$(node ../cineharbor-web/scripts/build-core-wasm.mjs --print-bindgen-version)
+          cargo install wasm-bindgen-cli --version "$version" --locked
+      - name: Build the actual pinned frontend
+        working-directory: workspace/cineharbor-web
+        run: |
+          pnpm install --frozen-lockfile
+          node scripts/build-desktop-frontend.mjs
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-frontend-${{ github.sha }}-${{ github.run_id }}
+          path: workspace/cineharbor-web/desktop-shell-dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  native:
+    name: Native ${{ matrix.name }}
+    needs: frontend
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Intel
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+            bundles: app,dmg
+          - name: macOS Apple Silicon
+            runner: macos-15
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+          - name: Windows x64
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+    defaults:
+      run:
+        working-directory: workspace/cineharbor-desktop
+        shell: bash
+    env:
+      APPLE_SIGNING_IDENTITY: '-'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: workspace/cineharbor-desktop
+          persist-credentials: false
+      - run: python3 scripts/ci-checkout.py
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10.14.0
+          package_json_file: workspace/cineharbor-desktop/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: workspace/cineharbor-desktop/pnpm-lock.yaml
+      - run: rustup toolchain install 1.98.1 --profile minimal --component clippy --target ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            workspace/cineharbor-core -> target
+            workspace/cineharbor-desktop -> target
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-frontend-${{ github.sha }}-${{ github.run_id }}
+          path: workspace/cineharbor-desktop/desktop-shell-dist
+      - name: Build locked native sidecar
+        run: node scripts/sync-desktop-sidecar.mjs --release --target ${{ matrix.target }}
+      - name: Check all Rust targets
+        id: check
+        run: cargo check --workspace --all-targets --locked --target ${{ matrix.target }}
+      - name: Test native shell
+        if: ${{ !cancelled() && steps.check.outcome == 'success' }}
+        run: cargo test --workspace --all-targets --locked --target ${{ matrix.target }}
+      - name: Strict Clippy
+        if: ${{ !cancelled() && steps.check.outcome == 'success' }}
+        run: cargo clippy --workspace --all-targets --all-features --locked --target ${{ matrix.target }} -- -D warnings
+      - name: Build unsigned verification installers (not signed RC acceptance)
+        if: ${{ !cancelled() && steps.check.outcome == 'success' }}
+        run: pnpm tauri build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --config src-tauri/tauri.ci.conf.json
+      - name: Verify immutable sources and locks
+        if: ${{ !cancelled() }}
+        run: git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: desktop-native-${{ matrix.target }}-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            workspace/cineharbor-desktop/target/${{ matrix.target }}/release/bundle/
+            workspace/cineharbor-desktop/src-tauri/binaries/sidecar-build.json
+          if-no-files-found: error
+          retention-days: 7
+
+  repeat_verified_main:
+    needs: [quality, frontend, native]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Repeat all gates on unchanged main once
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          [ "$current" = "$GITHUB_SHA" ] || exit 0
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref main

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { assertDraftCandidate } from './release-gates.mjs';
+
 import desktopReleaseTagModule from './desktop-release-tag.js';
 import {
   parseCliArgs,
@@ -55,6 +57,7 @@ async function githubRequest(url, token, options = {}) {
     method: options.method || 'GET',
     headers: buildHeaders(token),
     body: options.body ? JSON.stringify(options.body) : undefined,
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (response.ok) {
@@ -182,6 +185,7 @@ async function main() {
   const descriptor = buildDesktopReleaseDescriptor({ tagName });
   const targetCommitish = getTargetCommitish(metadata, args);
   const existingRelease = await getReleaseByTag(repository, tagName, token);
+  if (existingRelease) assertDraftCandidate(existingRelease);
   const ensuredRelease = existingRelease
     ? await updateRelease({
         repository,

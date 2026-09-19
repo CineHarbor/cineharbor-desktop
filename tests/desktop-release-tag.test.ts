@@ -22,7 +22,7 @@ describe('desktop release tag helpers', () => {
       version: '200.0.1',
       title: 'CineHarbor Desktop 200.0.1',
       prerelease: false,
-      draft: false,
+      draft: true,
     });
   });
 
@@ -35,7 +35,7 @@ describe('desktop release tag helpers', () => {
       version: '200.0.1-beta.16',
       title: 'CineHarbor Desktop 200.0.1 Beta 16',
       prerelease: true,
-      draft: false,
+      draft: true,
     });
   });
 

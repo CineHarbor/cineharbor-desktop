@@ -10,3 +10,5 @@
 /src-tauri/binaries/
 /src-tauri/gen/
 /desktop-shell-dist
+
+/.tauri-updater/

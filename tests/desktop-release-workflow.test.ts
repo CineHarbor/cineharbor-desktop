@@ -1,35 +1,23 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-function readProjectFile(relativePath: string) {
-  return readFileSync(path.join(process.cwd(), relativePath), 'utf8');
-}
+const workflow = () => readFileSync(path.join(process.cwd(), '.github/workflows/desktop-release.yml'), 'utf8');
 
-describe('desktop release workflow', () => {
-  it('continues downstream release publishing when at least one platform build succeeds', () => {
-    const workflow = readProjectFile('.github/workflows/desktop-release.yml');
-
-    expect(workflow).toContain('release_outcome:');
-    expect(workflow).toContain("should_publish == 'true'");
-    expect(workflow).toContain('needs: [publish_release, release_outcome]');
+describe('desktop release candidate safety', () => {
+  it('requires every expected platform instead of publishing partial success', () => {
+    expect(workflow()).toContain('evaluatePlatformBuilds(jobs)');
+    expect(workflow()).not.toContain("successCount > 0 ? 'true' : 'false'");
+    expect(workflow()).toContain("should_publish == 'true'");
   });
-
-  it('skips downstream publishing only when every platform build fails', () => {
-    const workflow = readProjectFile('.github/workflows/desktop-release.yml');
-
-    expect(workflow).toContain("job.conclusion === 'success'");
-    expect(workflow).toContain("successCount > 0 ? 'true' : 'false'");
+  it('creates draft assets and never publishes the live updater during preparation', () => {
+    expect(workflow()).toContain('releaseDraft: true');
+    expect(workflow()).not.toContain('releaseDraft: false');
+    expect(workflow()).not.toContain('publish-desktop-updater-manifest.mjs');
+    expect(workflow()).not.toContain(": 'neutral'");
   });
-
-  it('publishes a neutral partial-failure summary check when only some platforms succeed', () => {
-    const workflow = readProjectFile('.github/workflows/desktop-release.yml');
-
-    expect(workflow).toContain('publish_release_summary:');
-    expect(workflow).toContain('checks: write');
-    expect(workflow).toContain('github.rest.checks.create');
-    expect(workflow).toContain('successCount === publishJobs.length');
-    expect(workflow).toContain("? 'success'");
-    expect(workflow).toContain(": 'neutral'");
-    expect(workflow).toContain('Partial failure:');
+  it('still publishes an explicit complete-platform summary', () => {
+    expect(workflow()).toContain('publish_release_summary:');
+    expect(workflow()).toContain('github.rest.checks.create');
+    expect(workflow()).toContain('needs: [publish_release, release_outcome]');
   });
 });

@@ -1,4 +1,4 @@
-name: Release Desktop App
+name: Prepare Desktop Release Candidate
 
 on:
   push:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   csp_preflight:
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -43,6 +43,8 @@ jobs:
     name: Ensure GitHub Release
     runs-on: ubuntu-latest
     needs: csp_preflight
+    permissions:
+      contents: write
     outputs:
       release_id: ${{ steps.ensure_release.outputs.release_id }}
     env:
@@ -55,7 +57,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: '22'
           package-manager-cache: false
 
       - name: Create or update release from tag
@@ -66,20 +68,28 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     needs: ensure_release
+    permissions:
+      contents: write
     timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: workspace/cineharbor-desktop
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: macOS Intel
             runner: macos-15-intel
+            target: x86_64-apple-darwin
             args: --target x86_64-apple-darwin
           - name: macOS Apple Silicon
             runner: macos-15
+            target: aarch64-apple-darwin
             args: --target aarch64-apple-darwin
           - name: Windows x64
             runner: windows-2022
-            args: --bundles nsis --config src-tauri/tauri.windows.ci.conf.json
+            target: x86_64-pc-windows-msvc
+            args: --target x86_64-pc-windows-msvc --bundles nsis --config src-tauri/tauri.windows.ci.conf.json
 
     env:
       CI: true
@@ -94,27 +104,33 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v5
+        with:
+          path: workspace/cineharbor-desktop
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
         with:
           version: 10.14.0
+          package_json_file: workspace/cineharbor-desktop/package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          cache-dependency-path: workspace/cineharbor-desktop/pnpm-lock.yaml
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup pinned Rust
+        shell: bash
+        run: rustup toolchain install 1.98.1 --profile minimal --target ${{ matrix.target }} --target wasm32-unknown-unknown
 
       - name: Cache Rust build outputs
         uses: swatinem/rust-cache@v2
         with:
           workspaces: |
-            . -> target
+            workspace/cineharbor-desktop -> target
+            workspace/cineharbor-core -> target
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -138,38 +154,25 @@ jobs:
       - name: Sync updater endpoint
         run: pnpm desktop:sync:updater-config
 
-      - name: Checkout web frontend source
-        uses: actions/checkout@v5
-        with:
-          repository: CineHarbor/cineharbor-web
-          path: cicd-web
-          ref: main
+      - name: Checkout immutable integration dependencies
+        run: python3 scripts/ci-checkout.py
+
+      - name: Install matching WASM bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(node ../cineharbor-web/scripts/build-core-wasm.mjs --print-bindgen-version)
+          cargo install wasm-bindgen-cli --version "$version" --locked
 
       - name: Build desktop frontend
         shell: bash
         run: |
-          cd cicd-web
-          pnpm install --frozen-lockfile
-          node scripts/build-desktop-frontend.mjs
-          cd ..
-          cp -R cicd-web/desktop-shell-dist desktop-shell-dist
-
-      - name: Checkout core sidecar source
-        uses: actions/checkout@v5
-        with:
-          repository: CineHarbor/cineharbor-core
-          path: cicd-core
-          ref: main
-
-      - name: Checkout addon-sdk dependency
-        uses: actions/checkout@v5
-        with:
-          repository: CineHarbor/cineharbor-addon-sdk
-          path: cineharbor-addon-sdk
-          ref: main
+          set -euo pipefail
+          (cd ../cineharbor-web && pnpm install --frozen-lockfile && node scripts/build-desktop-frontend.mjs)
+          cp -R ../cineharbor-web/desktop-shell-dist desktop-shell-dist
 
       - name: Build desktop sidecar
-        run: node scripts/sync-desktop-sidecar.mjs --release --core-dir cicd-core
+        run: node scripts/sync-desktop-sidecar.mjs --release --target ${{ matrix.target }}
 
       - name: Build and upload release assets
         uses: tauri-apps/tauri-action@action-v0.6.2
@@ -178,10 +181,10 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          projectPath: .
+          projectPath: workspace/cineharbor-desktop
           releaseId: ${{ needs.ensure_release.outputs.release_id }}
           tagName: ${{ github.ref_name }}
-          releaseDraft: false
+          releaseDraft: true
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
           tauriScript: pnpm exec tauri
@@ -201,18 +204,18 @@ jobs:
       failed_platforms: ${{ steps.evaluate.outputs.failed_platforms }}
     permissions:
       actions: read
+      contents: read
 
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Evaluate desktop build results
         id: evaluate
         uses: actions/github-script@v7
         with:
           script: |
-            const publishJobNames = new Set([
-              'macOS Intel',
-              'macOS Apple Silicon',
-              'Windows x64',
-            ]);
+            const { evaluatePlatformBuilds } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/release-gates.mjs`);
             const jobs = await github.paginate(
               github.rest.actions.listJobsForWorkflowRun,
               {
@@ -222,40 +225,10 @@ jobs:
                 per_page: 100,
               }
             );
-            const publishJobs = jobs.filter((job) =>
-              publishJobNames.has(job.name)
-            );
-
-            if (publishJobs.length === 0) {
-              core.setFailed(
-                'No desktop platform build jobs were found for this workflow run.'
-              );
-              return;
-            }
-
-            const succeededPlatforms = publishJobs
-              .filter((job) => job.conclusion === 'success')
-              .map((job) => job.name);
-            const failedPlatforms = publishJobs
-              .filter((job) => job.conclusion !== 'success')
-              .map((job) => `${job.name} (${job.conclusion || 'unknown'})`);
-            const successCount = publishJobs.filter(
-              (job) => job.conclusion === 'success'
-            ).length;
-            const totalCount = publishJobs.length;
-            const summaryConclusion =
-              successCount === 0
-                ? 'failure'
-                : successCount === publishJobs.length
-                ? 'success'
-                : 'neutral';
-            core.info(
-              `Desktop platform builds succeeded: ${successCount}/${publishJobs.length}.`
-            );
-            core.setOutput(
-              'should_publish',
-              successCount > 0 ? 'true' : 'false'
-            );
+            const result = evaluatePlatformBuilds(jobs);
+            const { succeededPlatforms, failedPlatforms, successCount, totalCount } = result;
+            const summaryConclusion = result.complete ? 'success' : 'failure';
+            core.setOutput('should_publish', String(result.complete));
             core.setOutput('summary_conclusion', summaryConclusion);
             core.setOutput('success_count', String(successCount));
             core.setOutput('total_count', String(totalCount));
@@ -265,10 +238,8 @@ jobs:
             );
             core.setOutput('failed_platforms', JSON.stringify(failedPlatforms));
 
-            if (successCount === 0) {
-              core.notice(
-                'No desktop platform build succeeded. Downstream publish jobs will be skipped.'
-              );
+            if (!result.complete) {
+              core.setFailed('Not all required desktop platforms succeeded.');
             }
 
   publish_release_summary:
@@ -305,9 +276,7 @@ jobs:
             const title =
               summaryConclusion === 'success'
                 ? `All desktop platforms succeeded: ${successCount}/${totalCount}`
-                : summaryConclusion === 'neutral'
-                ? `Partial failure: ${successCount}/${totalCount} desktop platforms succeeded`
-                : `All desktop platforms failed: ${successCount}/${totalCount} succeeded`;
+                : `Incomplete platform build: ${successCount}/${totalCount} succeeded`;
 
             const summaryLines = [
               `Workflow run: ${runUrl}`,
@@ -353,30 +322,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: '22'
           package-manager-cache: false
 
       - name: Normalize desktop release assets
         run: node scripts/normalize-desktop-release-assets.mjs --tag "${{ github.ref_name }}"
 
-  publish_updater_manifest:
-    name: Publish Updater Manifest
-    runs-on: ubuntu-latest
-    needs: normalize_release_assets
-    permissions:
-      contents: write
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          package-manager-cache: false
-
-      - name: Publish desktop updater manifest
-        run: node scripts/publish-desktop-updater-manifest.mjs --tag "${{ github.ref_name }}"

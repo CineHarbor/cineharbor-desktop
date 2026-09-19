@@ -27,7 +27,7 @@ const CANONICAL_PRODUCTION_CSP = {
   'manifest-src': ["'self'"],
   'media-src': ["'self'", 'blob:', 'http:', 'https:'],
   'object-src': ["'none'"],
-  'script-src': ["'self'"],
+  'script-src': ["'self'", "'wasm-unsafe-eval'"],
   'style-src': ["'self'", "'unsafe-inline'"],
   'worker-src': ["'self'", 'blob:'],
 };
@@ -38,7 +38,7 @@ const CANONICAL_DEVELOPMENT_CSP = {
     ...CANONICAL_PRODUCTION_CSP['connect-src'],
     'ws://127.0.0.1:3000',
   ],
-  'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+  'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'", "'wasm-unsafe-eval'"],
 };
 
 function assertCanonicalPolicy(policyName, actual, expected) {
