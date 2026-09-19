@@ -647,10 +647,10 @@ fn desktop_login(
     let provided_password = password.unwrap_or_default();
 
     if requested_username == auth_config.username {
-        if let Some(expected_password) = auth_config.password {
-            if !verify_desktop_password(&expected_password, provided_password.trim()) {
-                return Err("用户名或密码错误".to_string());
-            }
+        if let Some(expected_password) = auth_config.password
+            && !verify_desktop_password(&expected_password, provided_password.trim())
+        {
+            return Err("用户名或密码错误".to_string());
         }
 
         let session = DesktopAuthSession {
@@ -891,7 +891,7 @@ pub fn run() {
         .expect("failed to build CineHarbor desktop shell");
 
     app.run(|app_handle, event| {
-        if matches!(event, RunEvent::Exit { .. }) {
+        if matches!(event, RunEvent::Exit) {
             let state = app_handle.state::<DesktopRuntimeState>();
             if let Err(error) = stop_local_service_impl(&state) {
                 tracing::warn!("failed to stop local service during shutdown: {error}");
@@ -1189,16 +1189,16 @@ fn build_status(
 }
 
 fn terminate_child_process(child: &mut Child) -> Result<()> {
-    if let Err(error) = child.kill() {
-        if error.kind() != std::io::ErrorKind::InvalidInput {
-            return Err(error).context("failed to kill local service process");
-        }
+    if let Err(error) = child.kill()
+        && error.kind() != std::io::ErrorKind::InvalidInput
+    {
+        return Err(error).context("failed to kill local service process");
     }
 
-    if let Err(error) = child.wait() {
-        if error.kind() != std::io::ErrorKind::InvalidInput {
-            return Err(error).context("failed to wait on local service process");
-        }
+    if let Err(error) = child.wait()
+        && error.kind() != std::io::ErrorKind::InvalidInput
+    {
+        return Err(error).context("failed to wait on local service process");
     }
 
     Ok(())
@@ -1352,7 +1352,7 @@ async fn local_service_health_check(base_url: &str) -> LocalServiceHealthCheck {
 
     match result {
         Ok((status_code, version)) => LocalServiceHealthCheck {
-            healthy: status_code >= 200 && status_code < 300,
+            healthy: (200..300).contains(&status_code),
             status_code: Some(status_code),
             error: None,
             version,
@@ -1802,10 +1802,10 @@ async fn run_local_service_diagnostics_impl(
         };
         log_lines.push(format!("  - [{status}] {}", candidate.display()));
     }
-    if let Some(path) = sidecar_path.as_ref() {
-        if let Some(metadata_summary) = describe_file_metadata(path) {
-            log_lines.push(format!("SidecarMetadata: {metadata_summary}"));
-        }
+    if let Some(path) = sidecar_path.as_ref()
+        && let Some(metadata_summary) = describe_file_metadata(path)
+    {
+        log_lines.push(format!("SidecarMetadata: {metadata_summary}"));
     }
 
     let sidecar_missing = sidecar_path.is_none();
@@ -4033,7 +4033,7 @@ fn open_url_in_system_browser(url: &str) -> Result<()> {
         command
             .spawn()
             .with_context(|| format!("failed to open external URL {url}"))?;
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(target_os = "macos")]
@@ -4045,7 +4045,7 @@ fn open_url_in_system_browser(url: &str) -> Result<()> {
             .stderr(Stdio::null())
             .spawn()
             .with_context(|| format!("failed to open external URL {url}"))?;
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
@@ -4057,7 +4057,7 @@ fn open_url_in_system_browser(url: &str) -> Result<()> {
             .stderr(Stdio::null())
             .spawn()
             .with_context(|| format!("failed to open external URL {url}"))?;
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -4113,10 +4113,10 @@ fn store_downloaded_update(
     });
     drop(downloaded_update);
 
-    if let Some(previous) = previous {
-        if previous.file_path != next_file_path {
-            remove_file_if_exists(&previous.file_path);
-        }
+    if let Some(previous) = previous
+        && previous.file_path != next_file_path
+    {
+        remove_file_if_exists(&previous.file_path);
     }
 }
 
@@ -4146,10 +4146,10 @@ fn store_paused_update_download(
     let previous = paused_state.replace(paused_update_download);
     drop(paused_state);
 
-    if let Some(previous) = previous {
-        if previous.file_path != next_file_path {
-            remove_file_if_exists(&previous.file_path);
-        }
+    if let Some(previous) = previous
+        && previous.file_path != next_file_path
+    {
+        remove_file_if_exists(&previous.file_path);
     }
 }
 
@@ -4382,12 +4382,12 @@ fn resolve_response_total_bytes(
 ) -> Result<Option<u64>> {
     if response.status() == StatusCode::PARTIAL_CONTENT {
         if let Some(content_range) = parse_response_content_range(response) {
-            if let Some(range_start) = content_range.start {
-                if range_start != downloaded_bytes {
-                    anyhow::bail!(
-                        "desktop update resume offset mismatch: expected {downloaded_bytes}, got {range_start}"
-                    );
-                }
+            if let Some(range_start) = content_range.start
+                && range_start != downloaded_bytes
+            {
+                anyhow::bail!(
+                    "desktop update resume offset mismatch: expected {downloaded_bytes}, got {range_start}"
+                );
             }
 
             if let Some(total) = content_range.total {
@@ -4491,17 +4491,16 @@ async fn prepare_update_download(
         let downloaded_bytes =
             read_partial_download_length(&paused_update_download.file_path).await?;
 
-        if let Some(total_bytes) = paused_update_download.total_bytes {
-            if downloaded_bytes > total_bytes {
-                remove_file_if_exists(&paused_update_download.file_path);
-                let file_path =
-                    build_update_download_file_path(app, version, &update.download_url)?;
-                return Ok(PreparedDesktopUpdateDownload {
-                    file_path,
-                    downloaded_bytes: 0,
-                    total_bytes: None,
-                });
-            }
+        if let Some(total_bytes) = paused_update_download.total_bytes
+            && downloaded_bytes > total_bytes
+        {
+            remove_file_if_exists(&paused_update_download.file_path);
+            let file_path = build_update_download_file_path(app, version, &update.download_url)?;
+            return Ok(PreparedDesktopUpdateDownload {
+                file_path,
+                downloaded_bytes: 0,
+                total_bytes: None,
+            });
         }
 
         return Ok(PreparedDesktopUpdateDownload {
@@ -4552,18 +4551,19 @@ async fn download_update_with_control_inner(
     on_event: Channel<DesktopReleaseInstallEvent>,
     mut command_rx: watch::Receiver<DesktopUpdateDownloadCommand>,
 ) -> Result<DesktopUpdateDownloadResult> {
-    if let Some(total_bytes) = prepared_download.total_bytes {
-        if prepared_download.downloaded_bytes == total_bytes && total_bytes > 0 {
-            verify_update_signature_file(&prepared_download.file_path, &update.signature).await?;
-            let _ = on_event.send(DesktopReleaseInstallEvent::Started {
-                content_length: Some(total_bytes),
-                downloaded_length: Some(prepared_download.downloaded_bytes),
-            });
-            let _ = on_event.send(DesktopReleaseInstallEvent::Finished);
-            return Ok(DesktopUpdateDownloadResult::Completed {
-                file_path: prepared_download.file_path,
-            });
-        }
+    if let Some(total_bytes) = prepared_download.total_bytes
+        && prepared_download.downloaded_bytes == total_bytes
+        && total_bytes > 0
+    {
+        verify_update_signature_file(&prepared_download.file_path, &update.signature).await?;
+        let _ = on_event.send(DesktopReleaseInstallEvent::Started {
+            content_length: Some(total_bytes),
+            downloaded_length: Some(prepared_download.downloaded_bytes),
+        });
+        let _ = on_event.send(DesktopReleaseInstallEvent::Finished);
+        return Ok(DesktopUpdateDownloadResult::Completed {
+            file_path: prepared_download.file_path,
+        });
     }
 
     let client = build_update_download_client(update)?;
@@ -5207,14 +5207,14 @@ fn install_downloaded_desktop_update_impl(
         anyhow::bail!("downloaded desktop update is unavailable");
     };
 
-    if let Some(expected_version) = expected_version {
-        if downloaded_update.version != expected_version {
-            anyhow::bail!(
-                "downloaded desktop update version {} does not match {}",
-                downloaded_update.version,
-                expected_version
-            );
-        }
+    if let Some(expected_version) = expected_version
+        && downloaded_update.version != expected_version
+    {
+        anyhow::bail!(
+            "downloaded desktop update version {} does not match {}",
+            downloaded_update.version,
+            expected_version
+        );
     }
 
     let bytes = read_downloaded_update_bytes(&downloaded_update.file_path)?;

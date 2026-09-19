@@ -17,6 +17,8 @@ lib.rs reviewed formatted postimage SHA256: 18144b099a3f582c590c513c8b96cac5aca2
 
 The deterministic one-time transformer reproduced this exact postimage locally and rejected a changed preimage. cargo fmt --all -- --check and git diff --check passed. The writer checks main freshness, reconciles the checkpoint, retires itself, non-force pushes and verifies the destination. It does not certify native builds before execution.
 
-**DESKTOP_CI_REPAIR = pending.**
+**DESKTOP_CI_REPAIR = applied.**
 
 Native post-repair results, final-main repeated CI, signed RCs, actual installation/update/data retention and production service acceptance are still required. RELEASE_READY remains false; no final public release is authorized or executed by this repair.
+
+The exact Rust repair was applied and portable pre-commit gates passed in Actions run 35441354006. The temporary writer was retired in this same revision. Native CI, signed RC and real updater acceptance remain pending; RELEASE_READY stays false.
