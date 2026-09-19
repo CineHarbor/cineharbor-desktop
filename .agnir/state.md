@@ -17,3 +17,7 @@ Observed local validation: Node v22.16.0 typecheck and CSP contract passed; 44 e
 Existing public updater key is preserved; secret existence, real signed old-to-new upgrade, installed playback/download, data preservation, diagnostics redaction and external production service readiness remain separate obligations. User instructions authorize autonomous fixes and pushes, not fabricated acceptance or final public release.
 
 Project identity urn:cineharbor:project:cineharbor-desktop, lineage urn:cineharbor:lineage:cineharbor-desktop; Agnir Core/Profile 1.0 / repository-filesystem/1.0; operations 1.0.2 at b5626394ec40a5cb7a28c01892acde07cc0adc8e are unchanged. License: CC-BY-NC-SA-4.0.
+
+## Applied formatting checkpoint
+
+Owned Rust formatting now passes with Rust 1.98.1. The one-time normalizer was removed. Native CI and signed upgrade acceptance remain separately required; RELEASE_READY remains false.

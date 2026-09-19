@@ -29,9 +29,7 @@ use semver::Version;
 #[cfg(target_os = "windows")]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use tauri::{
-    AppHandle, Manager, RunEvent, Runtime, State, ipc::Channel,
-};
+use tauri::{AppHandle, Manager, RunEvent, Runtime, State, ipc::Channel};
 use tauri_plugin_updater::{Update as DesktopUpdateHandle, UpdaterExt};
 use tokio::{
     fs::{self as tokio_fs, OpenOptions as TokioOpenOptions},
@@ -616,9 +614,7 @@ fn write_app_config(
 }
 
 #[tauri::command]
-fn get_local_service_access_token(
-    state: State<'_, DesktopRuntimeState>,
-) -> String {
+fn get_local_service_access_token(state: State<'_, DesktopRuntimeState>) -> String {
     state.local_service_access_token.clone()
 }
 
@@ -665,7 +661,8 @@ fn desktop_login(
         *state
             .verified_desktop_auth_session
             .lock()
-            .map_err(|_| "failed to lock desktop authentication state".to_string())? = Some(session.clone());
+            .map_err(|_| "failed to lock desktop authentication state".to_string())? =
+            Some(session.clone());
         return Ok(session);
     }
 
@@ -696,7 +693,8 @@ fn desktop_login(
     *state
         .verified_desktop_auth_session
         .lock()
-        .map_err(|_| "failed to lock desktop authentication state".to_string())? = Some(session.clone());
+        .map_err(|_| "failed to lock desktop authentication state".to_string())? =
+        Some(session.clone());
     Ok(session)
 }
 
@@ -1911,9 +1909,10 @@ async fn run_local_service_diagnostics_impl(
             ),
         });
     } else {
-        let probe_path = paths
-            .data_dir
-            .join(format!(".cineharbor-diagnostic-write-{}.tmp", captured_at_ms));
+        let probe_path = paths.data_dir.join(format!(
+            ".cineharbor-diagnostic-write-{}.tmp",
+            captured_at_ms
+        ));
         match fs::write(&probe_path, b"cineharbor-diagnostic") {
             Ok(_) => {
                 let _ = fs::remove_file(&probe_path);
@@ -2358,7 +2357,12 @@ fn append_app_context_log_lines(app: &AppHandle, log_lines: &mut Vec<String>) {
         "Version",
         app.package_info().version.to_string(),
     );
-    push_log_kv(log_lines, 1, "TargetTriple", env!("CINEHARBOR_TARGET_TRIPLE"));
+    push_log_kv(
+        log_lines,
+        1,
+        "TargetTriple",
+        env!("CINEHARBOR_TARGET_TRIPLE"),
+    );
     push_log_kv(
         log_lines,
         1,
@@ -3774,10 +3778,8 @@ fn change_desktop_password_impl(
     };
 
     if let Some(expected_password) = expected_password {
-        let provided_password = normalize_required_string(
-            current_password.unwrap_or_default(),
-            "请输入当前密码",
-        )?;
+        let provided_password =
+            normalize_required_string(current_password.unwrap_or_default(), "请输入当前密码")?;
         if !verify_desktop_password(&expected_password, &provided_password) {
             anyhow::bail!("当前密码错误");
         }
@@ -5561,28 +5563,27 @@ fn resolve_sidecar_binary_paths(app: &AppHandle, current_version: &str) -> Resul
 #[cfg(test)]
 mod tests {
     use super::{
-        DEFAULT_DESKTOP_OWNER_USERNAME, DesktopRuntimeState, GithubReleaseAssetPayload, GithubReleasePayload,
-        LOCAL_SERVICE_HEALTH_READ_TIMEOUT, LocalProfileSyncStatus, LocalServiceHealthCheck,
-        LocalServiceStartupFailure, PortOccupant, SidecarBinaryVersionProbe,
-        SidecarTrialResult, append_cache_busting_query,
+        DEFAULT_DESKTOP_OWNER_USERNAME, DesktopRuntimeState, GithubReleaseAssetPayload,
+        GithubReleasePayload, LOCAL_SERVICE_HEALTH_READ_TIMEOUT, LocalProfileSyncStatus,
+        LocalServiceHealthCheck, LocalServiceStartupFailure, PortOccupant,
+        SidecarBinaryVersionProbe, SidecarTrialResult, append_cache_busting_query,
         build_profile_sync_status_diagnostic_detail, build_release_compare_api_url,
-        collect_diagnostics_error_text,
-        describe_primary_port_issue, ensure_default_desktop_owner_auth_value,
-        extract_desktop_release_version, extract_profile_sync_api_base_url,
-        fetch_local_profile_sync_status, find_desktop_release_manifest_url, local_service_health_check,
+        collect_diagnostics_error_text, describe_primary_port_issue,
+        ensure_default_desktop_owner_auth_value, extract_desktop_release_version,
+        extract_profile_sync_api_base_url, fetch_local_profile_sync_status,
+        find_desktop_release_manifest_url, local_service_health_check,
         normalize_desktop_release_history, normalize_release_repository_slug,
         select_preferred_sidecar_candidates, set_desktop_local_user_password_value,
         set_desktop_owner_password_value, should_reuse_untracked_local_service,
         summarize_trial_output, verify_desktop_password,
     };
-    use std::time::Duration;
     use std::path::PathBuf;
+    use std::time::Duration;
     use tokio::{
         io::{AsyncReadExt, AsyncWriteExt},
         net::TcpListener,
     };
     use url::Url;
-
 
     #[test]
     fn generates_distinct_non_empty_native_secrets_for_access_and_admin_capability() {
@@ -6111,7 +6112,6 @@ mod tests {
         assert!(detail.contains("protocol-incompatible"));
         assert!(detail.contains("unexpected profile sync response"));
     }
-
 
     #[tokio::test(flavor = "current_thread")]
     async fn local_service_health_check_reads_loopback_http_response() {
