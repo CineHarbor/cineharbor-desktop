@@ -395,6 +395,7 @@ struct PortInspection {
     debug_lines: Vec<String>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 struct WindowsDiagnosticSnapshot {
@@ -408,6 +409,7 @@ struct WindowsDiagnosticSnapshot {
     network: Vec<WindowsNetworkAdapterSnapshot>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WindowsOsSnapshot {
@@ -421,6 +423,7 @@ struct WindowsOsSnapshot {
     total_visible_memory_kb: Option<u64>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WindowsComputerSnapshot {
@@ -433,6 +436,7 @@ struct WindowsComputerSnapshot {
     hypervisor_present: Option<bool>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WindowsCpuSnapshot {
@@ -444,6 +448,7 @@ struct WindowsCpuSnapshot {
     processor_id: Option<String>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WindowsGpuSnapshot {
@@ -454,6 +459,7 @@ struct WindowsGpuSnapshot {
     status: Option<String>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WindowsNetworkAdapterSnapshot {
@@ -477,6 +483,7 @@ struct WindowsNetworkAdapterSnapshot {
     dns_domain: Option<String>,
 }
 
+#[cfg(target_os = "windows")]
 #[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 struct WindowsPortOccupantsPayload {
@@ -2869,12 +2876,14 @@ fn format_optional_text(value: Option<&str>) -> String {
         .unwrap_or_else(|| "unknown".to_string())
 }
 
+#[cfg(target_os = "windows")]
 fn format_optional_bool(value: Option<bool>) -> String {
     value
         .map(|value| value.to_string())
         .unwrap_or_else(|| "unknown".to_string())
 }
 
+#[cfg(target_os = "windows")]
 fn format_string_list(values: &[String]) -> String {
     let items = values
         .iter()
@@ -2888,10 +2897,12 @@ fn format_string_list(values: &[String]) -> String {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn format_memory_kib(value_kb: u64) -> String {
     format_byte_quantity(value_kb.saturating_mul(1024))
 }
 
+#[cfg(target_os = "windows")]
 fn format_byte_quantity(bytes: u64) -> String {
     const KIB: f64 = 1024.0;
     const MIB: f64 = KIB * 1024.0;
@@ -2912,6 +2923,7 @@ fn format_byte_quantity(bytes: u64) -> String {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn format_bit_rate(bits_per_second: u64) -> String {
     const KBPS: f64 = 1_000.0;
     const MBPS: f64 = KBPS * 1_000.0;
