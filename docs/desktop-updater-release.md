@@ -25,3 +25,35 @@ Frontend release links use `NEXT_PUBLIC_RELEASE_REPOSITORY`. Tauri endpoint conf
 ## Download Site
 
 The separate `CineHarbor/cineharbor-download-site` repository exports actual public GitHub releases. Draft candidates must not appear as public downloads. Deployment-branch generation and the served production site are distinct acceptance checks. Candidate preparation does not modify a live updater manifest to refer to draft-only assets.
+
+## 1.0.0 signing prerequisites and acceptance boundary
+
+The preparation workflow now runs `scripts/release-signing-preflight.mjs` before
+creating even a draft release. The read-only `release-prerequisites.yml` workflow
+can inspect configured prerequisites on trusted main without producing installers,
+creating tags/releases, changing the updater branch or printing secret values.
+Its JSON reports only fixed check identifiers and statuses. A configured check
+is not cryptographic proof or installed-upgrade acceptance.
+
+The currently wired macOS release route uses the existing approved
+`APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`
+(Developer ID Application, never `-`) and Apple-ID notarization credentials
+`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`. Certificate values are supplied
+only to the signing step, not dependency installation. Supporting a different
+notarization credential route requires a reviewed adapter, not a guessed identity.
+Windows requires an explicitly approved `bundle.windows.certificateThumbprint`
+or `signCommand` and the corresponding provider available on the release runner.
+No provider or certificate is invented by the preflight. Missing configuration is
+an `EXTERNAL_BLOCKER`; ordinary unsigned verification CI remains independent.
+
+`TAURI_SIGNING_PRIVATE_KEY` and its existing optional password remain the updater
+signing identity. The approved public key and updater endpoint are unchanged.
+A presence check cannot verify that the private key matches the public key.
+Before release acceptance, inspect actual OS signatures/notarization, verify the
+updater signature over each exact artifact, install on all three platforms, and
+perform the real public `desktop-v0.1.0` to 1.0.0 upgrade retaining user data.
+The existence of old `.sig` assets alone proves none of these steps.
+
+Implementation references: Tauri's official macOS and Windows signing guides,
+`https://v2.tauri.app/distribute/sign/macos/` and
+`https://v2.tauri.app/distribute/sign/windows/`, accessed 2026-09-20.

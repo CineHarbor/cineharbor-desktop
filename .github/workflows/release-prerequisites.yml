@@ -1,0 +1,42 @@
+name: Release signing prerequisites (not signed acceptance)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-prerequisites.yml'
+      - '.github/workflows/desktop-release.yml'
+      - 'scripts/release-signing-preflight.mjs'
+      - 'src-tauri/tauri*.conf.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prerequisites:
+    if: ${{ github.repository == 'CineHarbor/cineharbor-desktop' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Inspect prerequisites without exporting secret values
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: node scripts/release-signing-preflight.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signing-prerequisites-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-signing-prerequisites.json
+          if-no-files-found: error
+          retention-days: 30

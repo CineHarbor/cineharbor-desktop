@@ -35,6 +35,7 @@ def checkout(root):
             with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
                 stream.write(f'\nIntegration dependency: `CineHarbor/{name}@{actual}`\n')
 
+    subprocess.run(['node', str(root / 'scripts/check-integration-versions.mjs'), str(root)], check=True, timeout=30)
 
 if __name__ == '__main__':
     checkout(Path(__file__).resolve().parents[1])

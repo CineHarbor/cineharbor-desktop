@@ -1,10 +1,7 @@
 # cineharbor-desktop Next Actions
 
-1. Run the platform-cfg repair through the complete PR CI matrix. After merge, obtain two complete successful CI executions at one exact final main SHA; strict Clippy and actual unsigned installers remain mandatory.
-2. Verify real macOS arm64, macOS x64 and Windows x64 release artifacts. Distinguish unsigned build verification from signed RC acceptance. Check installed UI/WASM startup, sidecar health/crash/shutdown and playback/download.
-3. Prepare signed 1.0.0 draft RCs only with the existing approved updater key; validate signatures, checksums, platform completeness and version metadata. Never replace the signing identity or publish a partial updater manifest.
-4. Execute an actual old public version → 1.0.0 updater installation/restart with retained user data and correct sidecar/UI versions. Mock protocol checks or build artifacts cannot close this blocker.
-5. Complete diagnostics redaction, production integration, security/license/brand/version review and the facade release matrix; checkpoint final observed truth, push, verify refs and fresh-resolve lineage.
-6. Once every hard gate is observed passing at final revisions, perform the Principal-authorized public 1.0.0 publication and verify updater/download-site propagation. Do not weaken a gate to reach publication.
-
-Continue autonomously under the Principal's 2026-09-19 authorization.
+1. Validate the Windows CRLF parser repair in PR #2; run 35509724548 is a failed predecessor, not final evidence. Require all portable, real pinned WASM/frontend and three-platform native check/test/strict-Clippy/unsigned-installer PR steps, then repeat the complete matrix twice on one exact main SHA. Do not reuse the 0.1.0 predecessor's native evidence for the aligned unit.
+2. Inspect the trusted-main signing prerequisite report. Record missing approved updater/macOS notarization/Windows provider configuration as explicit EXTERNAL_BLOCKER; never print secrets, invent identities or treat presence as signature verification.
+3. Build draft-only signed RCs after prerequisites genuinely pass; verify OS signing/notarization, exact updater signatures, checksums and all expected platform assets. Preserve the approved updater key and live branch.
+4. Install the actual public desktop-v0.1.0 baseline and perform a real signed 1.0.0 update/restart with retained accounts/config/database/download data. Test installed playback, download, sidecar lifecycle and long-running capability expiry. None is waived by unsigned CI.
+5. Complete native diagnostics/security/license/brand and production acceptance, reconcile the facade release matrix, and fresh-resolve checkpoints after verified pushes. No public publication as part of this preparation run.
