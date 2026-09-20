@@ -10,7 +10,13 @@ Main predecessor `1fd69e23d3d493b57ac280ff72623ab0eadb7d4d` passed complete unsi
 
 The candidate aligns package, Tauri, workspace, owned Cargo.lock entry and release metadata to 1.0.0. It pins twice-verified Core `246411ba6c72b5b79b6e14598228c62a16857309`, SDK `3ab4ff8fcc38a6f0849389a7c6b66291f3ca341d` and Web `97cf1bf55033ed16a2f0f77a97c28848aa323956`. Immutable checkout is followed by a version/dependency-graph consistency check; incompatible pins or mixed versions fail before building.
 
-Local portable checks pass: typecheck, 44 Jest tests, 37 Node tooling tests, CSP, owned rustfmt and integration metadata validation. This is not native installation proof. Require the complete three-platform PR matrix and two full runs at the eventual main SHA.
+Local portable checks pass: typecheck, 44 Jest tests, 40 Node tooling tests, CSP, owned rustfmt and integration metadata validation. This is not native installation proof. Require the complete three-platform PR matrix and two full runs at the eventual main SHA.
+
+## Windows checkout regression
+
+PR #2 at fd304b5f41c6d56e3b1acc66d7fca5ef4370b1c3 passed portable and actual WASM/static-export checks, but run 35509724548 job 106075738202 failed before Windows native compilation: the new lock parser assumed LF despite Windows Git CRLF checkout. The follow-up normalizes only the in-memory TOML/lock text, preserves files byte-for-byte, and still rejects stale or duplicate owned versions. Three new regressions fail against the former parser and pass after repair. Full local portable gates pass again. The repaired exact PR/main native matrices remain required.
+
+See `.agnir/evidence/2026-09-20-windows-lock-newlines.md`.
 
 ## Signing and installation boundary
 

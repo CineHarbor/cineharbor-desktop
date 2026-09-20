@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -43,4 +43,27 @@ test('rejects mutable pins before inspecting or building dependencies', (t) => {
 test('rejects an owned lock entry from a different version', (t) => {
   const f = fixture(t); f.put('cineharbor-desktop', 'Cargo.lock', '[[package]]\nname = "cineharbor-desktop-shell"\nversion = "0.1.0"\n');
   assert.throws(() => checkIntegration(f.desktop), /lock version/);
+});
+
+test('accepts Windows CRLF manifests and locks without changing their bytes', (t) => {
+  const f = fixture(t);
+  const files = ['Cargo.lock', 'Cargo.toml'];
+  for (const name of files) {
+    const file = path.join(f.desktop, name);
+    writeFileSync(file, readFileSync(file, 'utf8').replace(/\n/g, '\r\n'));
+  }
+  const before = files.map((name) => readFileSync(path.join(f.desktop, name)));
+  assert.equal(checkIntegration(f.desktop).version, '1.0.0');
+  files.forEach((name, i) => assert.deepEqual(readFileSync(path.join(f.desktop, name)), before[i]));
+});
+test('rejects stale Windows CRLF lock versions just as strictly as LF', (t) => {
+  const f = fixture(t);
+  f.put('cineharbor-desktop', 'Cargo.lock', '[[package]]\r\nname = "cineharbor-desktop-shell"\r\nversion = "0.1.0"\r\n');
+  assert.throws(() => checkIntegration(f.desktop), /lock version/);
+});
+test('rejects duplicate owned lock entries regardless of line endings', (t) => {
+  const f = fixture(t);
+  const entry = '[[package]]\nname = "cineharbor-desktop-shell"\nversion = "1.0.0"\n';
+  f.put('cineharbor-desktop', 'Cargo.lock', entry + entry.replace(/\n/g, '\r\n'));
+  assert.throws(() => checkIntegration(f.desktop), /owned Desktop lock entry/);
 });

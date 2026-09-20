@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const json = (root, file) => JSON.parse(readFileSync(path.join(root, file), 'utf8'));
 function workspaceVersion(root) {
-  const text = readFileSync(path.join(root, 'Cargo.toml'), 'utf8');
+  const text = readFileSync(path.join(root, 'Cargo.toml'), 'utf8').replace(/\r\n/g, '\n');
   const section = text.match(/^\[workspace\.package\]\s*\n([\s\S]*?)(?=^\[|$(?![\s\S]))/m)?.[1];
   const values = [...(section ?? '').matchAll(/^version\s*=\s*"([^"]+)"\s*$/gm)];
   assert.equal(values.length, 1, 'Expected one workspace package version');
@@ -30,9 +30,10 @@ export function checkIntegration(root) {
     json(root, 'src/config/desktop-release.json').desktopVersion,
     json(web, 'package.json').version, json(web, 'src/config/desktop-release.json').desktopVersion];
   assert.ok(versions.every((v) => v === version), 'Mixed product versions cannot form a 1.0.0 candidate');
-  const lock = readFileSync(path.join(root, 'Cargo.lock'), 'utf8');
+  // Git may check text files out as CRLF on Windows; normalize in memory only.
+  const lock = readFileSync(path.join(root, 'Cargo.lock'), 'utf8').replace(/\r\n/g, '\n');
   const owned = [...lock.matchAll(/\[\[package\]\]\nname = "cineharbor-desktop-shell"\nversion = "([^"]+)"/g)];
-  assert.equal(owned.length, 1);
+  assert.equal(owned.length, 1, 'Expected one owned Desktop lock entry');
   assert.equal(owned[0][1], version, 'Desktop lock version must match its manifest');
   return { version, dependencies: pins, scope: 'metadata consistency; checkout revisions are verified separately by ci-checkout.py' };
 }
