@@ -24,7 +24,7 @@ describe('desktop release workflow config', () => {
     expect(workflow).toContain('name: Validate Tauri CSP Contract');
     expect(workflow).toContain('run: pnpm check:tauri-csp');
     expect(workflow).toMatch(
-      /ensure_release:\s*[\s\S]*?needs:\s*csp_preflight/
+      /ensure_release:\s*[\s\S]*?needs:\s*\[csp_preflight, signing_preflight\]/
     );
     expect(workflow).toMatch(
       /publish_release:\s*[\s\S]*?needs:\s*ensure_release/

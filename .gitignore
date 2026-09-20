@@ -12,3 +12,4 @@
 /desktop-shell-dist
 
 /.tauri-updater/
+release-signing-prerequisites.json

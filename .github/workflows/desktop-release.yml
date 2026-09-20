@@ -39,10 +39,40 @@ jobs:
       - name: Validate Tauri CSP contract
         run: pnpm check:tauri-csp
 
+  signing_preflight:
+    name: Require approved signing prerequisites before any release write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Inspect prerequisites without exporting secret values
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: node scripts/release-signing-preflight.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: signing-prerequisites-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-signing-prerequisites.json
+          if-no-files-found: error
+          retention-days: 30
+
   ensure_release:
     name: Ensure GitHub Release
     runs-on: ubuntu-latest
-    needs: csp_preflight
+    needs: [csp_preflight, signing_preflight]
     permissions:
       contents: write
     outputs:
@@ -99,7 +129,6 @@ jobs:
       SITE_BASE: ${{ vars.SITE_BASE || '' }}
       CINEHARBOR_RELEASE_REPOSITORY: ${{ github.repository }}
       NEXT_PUBLIC_RELEASE_REPOSITORY: ${{ github.repository }}
-      APPLE_SIGNING_IDENTITY: '-'
 
     steps:
       - name: Checkout source
@@ -180,6 +209,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: workspace/cineharbor-desktop
           releaseId: ${{ needs.ensure_release.outputs.release_id }}
