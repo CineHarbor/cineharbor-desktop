@@ -57,3 +57,9 @@ The existence of old `.sig` assets alone proves none of these steps.
 Implementation references: Tauri's official macOS and Windows signing guides,
 `https://v2.tauri.app/distribute/sign/macos/` and
 `https://v2.tauri.app/distribute/sign/windows/`, accessed 2026-09-20.
+
+## 2026-10-17 — Installation-first sequencing (Principal)
+
+Unsigned installer **builds** and real OS-hosted installation are separate acceptance gates. The native CI now includes independent \`installed\` jobs on Windows x64, macOS Intel and Apple Silicon. Each downloads the actual immutable-SHA/run-matched NSIS installer or DMG built by \`native\`. Windows executes the real NSIS setup into isolated runner space and validates installed desktop/sidecar binaries; macOS mounts the actual DMG, copies the packaged .app, validates its CFBundle identity/version and native executable/sidecar. Both verify two application launches by inspecting the real running process and archive installer/binary hashes and logs. Every failed install/startup blocks the main verification repeat.
+
+Official macOS signing/notarization, approved Windows signing and signed updater acceptance are postponed **until the separately authorized public release stage**, not waived or falsely reported as successful. These CI jobs do not validate app-interactive playback, downloads, persistence, trusted signed OS installation or a signed old-version upgrade; explicit acceptance remains to do. Unsigned CI packages are never public signed RCs.

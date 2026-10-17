@@ -1,7 +1,7 @@
-# cineharbor-desktop Next Actions
+# cineharbor-desktop Next Actions — 2026-10-17
 
-1. Validate the Windows CRLF parser repair in PR #2; run 35509724548 is a failed predecessor, not final evidence. Require all portable, real pinned WASM/frontend and three-platform native check/test/strict-Clippy/unsigned-installer PR steps, then repeat the complete matrix twice on one exact main SHA. Do not reuse the 0.1.0 predecessor's native evidence for the aligned unit.
-2. Inspect the trusted-main signing prerequisite report. Record missing approved updater/macOS notarization/Windows provider configuration as explicit EXTERNAL_BLOCKER; never print secrets, invent identities or treat presence as signature verification.
-3. Build draft-only signed RCs after prerequisites genuinely pass; verify OS signing/notarization, exact updater signatures, checksums and all expected platform assets. Preserve the approved updater key and live branch.
-4. Install the actual public desktop-v0.1.0 baseline and perform a real signed 1.0.0 update/restart with retained accounts/config/database/download data. Test installed playback, download, sidecar lifecycle and long-running capability expiry. None is waived by unsigned CI.
-5. Complete native diagnostics/security/license/brand and production acceptance, reconcile the facade release matrix, and fresh-resolve checkpoints after verified pushes. No public publication as part of this preparation run.
+1. Run the exact-artifact installed acceptance job on Windows x64, macOS Intel and Apple Silicon CI. Verify real DMG/NSIS installation, executable and sidecar, process launch/restart, hashes and retained failure logs. Fail closed on unavailable installer or GUI; repair actual failures rather than removing the gate. Require two full main runs at a final immutable SHA.
+2. Exercise real installed profile/settings/database persistence, installed sidecar lifecycle, playback, media downloads and recovery. Consider an isolated upgrade rehearsal from the genuinely public 0.1.0 baseline, clearly separate from signed-updater acceptance.
+3. Address current dependency security findings, production app/addon/browser runtime, native diagnostics and license/brand review without weakening contracts.
+4. **Deferred by Principal to public release only:** Developer ID/notarization, Windows approved signing provider and signed old-to-new updater. Never claim unsigned smoke to be signed or publish an unsigned candidate as official.
+5. Reconcile canonical facade evidence and keep RELEASE_READY=false / PUBLIC_RELEASE_EXECUTED=false until observed evidence satisfies the applicable gates.

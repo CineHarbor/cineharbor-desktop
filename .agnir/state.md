@@ -27,3 +27,7 @@ Actual availability of hosted prerequisites must be observed from the new workfl
 Signed RCs, installed playback/download, long-running native media-capability renewal, real old-to-new upgrade/data preservation, native diagnostics review and production integration remain open. See `.agnir/evidence/2026-09-20-integration-and-signing-gates.md`.
 
 Project urn:cineharbor:project:cineharbor-desktop; lineage urn:cineharbor:lineage:cineharbor-desktop; Agnir 1.0 / repository-filesystem/1.0 and operations 1.0.2 provenance unchanged. License CC-BY-NC-SA-4.0.
+
+## 2026-10-17 installation-first candidate
+
+The Principal prioritized real installer-based Desktop testing before official signing, which is deferred until public release. The current main 39d88553 passed exact-source unsigned Windows x64, macOS Intel and Apple Silicon builds twice (35510892612 and 35511311874), but none was an installed-app test. This candidate adds real native DMG/NSIS install, packaged sidecar detection and two live-process launch attempts to CI with evidence artifacts; **pending actual PR/main run outcomes**, not yet accepted. Signing prerequisite run 35510892575 failed (Apple/Windows requirements), now deferred not waived. RELEASE_READY=false; PUBLIC_RELEASE_EXECUTED=false.
