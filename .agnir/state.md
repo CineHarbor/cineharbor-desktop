@@ -31,3 +31,9 @@ Project urn:cineharbor:project:cineharbor-desktop; lineage urn:cineharbor:lineag
 ## 2026-10-17 installation-first candidate
 
 The Principal prioritized real installer-based Desktop testing before official signing, which is deferred until public release. The current main 39d88553 passed exact-source unsigned Windows x64, macOS Intel and Apple Silicon builds twice (35510892612 and 35511311874), but none was an installed-app test. This candidate adds real native DMG/NSIS install, packaged sidecar detection and two live-process launch attempts to CI with evidence artifacts; **pending actual PR/main run outcomes**, not yet accepted. Signing prerequisite run 35510892575 failed (Apple/Windows requirements), now deferred not waived. RELEASE_READY=false; PUBLIC_RELEASE_EXECUTED=false.
+
+## 2026-10-18 actual installed-client CI checkpoint and deeper candidate
+
+PR #3 passed complete PR CI 39041060877: the real unsigned NSIS and DMG packages were installed and the installed program was started twice in Windows x64, macOS Intel and Apple Silicon runners. Reviewed the three SHA-bound acceptance artifacts; both Mac second-launch logs observed a healthy 1.0.0 local sidecar reuse. PR #3 merged to 40e073df8c338b0530facbe403d8a8929afa0a6d. Fresh main CI at this exact SHA must still complete twice.
+
+This candidate extends those real-install jobs with a live sidecar /health version probe, Tauri app-data config and initialized SQLite file assertions, and a test-owned SQLite marker retained across installed app-process relaunch. Pending remote CI; not yet a pass. No signer/updater production change. RELEASE_READY=false / PUBLIC_RELEASE_EXECUTED=false.

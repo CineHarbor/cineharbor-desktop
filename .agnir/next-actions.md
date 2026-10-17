@@ -1,7 +1,7 @@
-# cineharbor-desktop Next Actions — 2026-10-17
+# cineharbor-desktop Next Actions — 2026-10-18
 
-1. Run the exact-artifact installed acceptance job on Windows x64, macOS Intel and Apple Silicon CI. Verify real DMG/NSIS installation, executable and sidecar, process launch/restart, hashes and retained failure logs. Fail closed on unavailable installer or GUI; repair actual failures rather than removing the gate. Require two full main runs at a final immutable SHA.
-2. Exercise real installed profile/settings/database persistence, installed sidecar lifecycle, playback, media downloads and recovery. Consider an isolated upgrade rehearsal from the genuinely public 0.1.0 baseline, clearly separate from signed-updater acceptance.
-3. Address current dependency security findings, production app/addon/browser runtime, native diagnostics and license/brand review without weakening contracts.
-4. **Deferred by Principal to public release only:** Developer ID/notarization, Windows approved signing provider and signed old-to-new updater. Never claim unsigned smoke to be signed or publish an unsigned candidate as official.
-5. Reconcile canonical facade evidence and keep RELEASE_READY=false / PUBLIC_RELEASE_EXECUTED=false until observed evidence satisfies the applicable gates.
+1. Verify two complete main CI runs at merged SHA 40e073df after three native installed-app smoke tests succeeded in PR run 39041060877.
+2. Validate new installed sidecar/SQLite persistence candidate through all required PR jobs; after merge inspect two full main runs including actual OS installs, sidecar loopback /health and retained per-user SQLite marker. Fail closed and repair host-path/service errors rather than weakening checks.
+3. Extend to real login/settings/profile persistence, downloaded media, installed playback and explicit sidecar shutdown/recovery; distinguish from basic process/DB smoke.
+4. Fix SDK/Core/Desktop rustls and critical/high Web dependencies, integrate new immutable SHAs and all mandatory CI; resolve remaining security/architecture/license/production checks.
+5. Signing/notarization, official signed RC and verified signed old-to-new updater deferred to separate public release authorization (not waived); RELEASE_READY=false and PUBLIC_RELEASE_EXECUTED=false.

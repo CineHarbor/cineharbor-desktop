@@ -1,0 +1,9 @@
+# Actual installed native package and next health/persistence gate — 2026-10-18
+
+Predecessor Desktop main 39d885531144636487bad37af497373ca4ca6a78. PR #3 candidate 0ffda5f21abf9c0f79c9a36569ec8bf63604c3c6 passed PR Actions run 39041060877 (test merge revision df2c1950930853df4c8279571fa5517046a1e17c) including full quality/frontend/native Windows x64, macOS Intel and macOS Apple Silicon, plus real NSIS/DMG installation and two launches of actual installed application binaries on each. Native install evidence artifacts 12105017134 (macOS arm64), 12104818278 (macOS Intel), 12104263967 (Windows) were downloaded and inspected. Both macOS second-launch logs reported reuse of healthy local-service v1.0.0; installed package SHA256 values were recorded in artifacts. These claims concern hosted-runner unsigned installs, not signed/interactive apps.
+
+Merged main result: 40e073df8c338b0530facbe403d8a8929afa0a6d. Main CI run 39059537440 was observed in progress at the time this candidate was prepared; it is NOT pre-classified as successful. Post-merge second main run must be verified separately.
+
+New patch adds Python 3.12 via setup-python to the three native installed jobs and an isolated user-data probe: GET http://127.0.0.1:8787/health status ok/version 1.0.0, require app-managed config JSON and SQLite file, seed a dedicated test marker in the **actual native SQLite database** after first app launch and require it after second launch. No config, login tokens, or DB raw bytes are exported. An unhealthy or uninitialized service fails CI. This is proposed until actual hosted acceptance confirms it.
+
+Limits: app-process restart may reuse live sidecar and does not establish full sidecar clean shutdown, real authenticated profile, media playback/download, signed updater, Apple notarization or Windows signature. RELEASE_READY=false; PUBLIC_RELEASE_EXECUTED=false.

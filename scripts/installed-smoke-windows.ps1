@@ -30,6 +30,9 @@ try {
         $application.Refresh()
         if ($application.HasExited) { throw "Installed app launch #$attempt exited early with $($application.ExitCode)" }
         Write-Host "Installed app launch #$attempt remained alive for 10 seconds"
+        $mode = if ($attempt -eq 1) { "seed" } else { "verify" }
+        python scripts/installed-sidecar-persistence.py $mode --evidence $evidence
+        if ($LASTEXITCODE -ne 0) { throw "Installed sidecar/SQLite $mode check failed" }
         Stop-Process -Id $application.Id -Force -ErrorAction Stop
         $application.WaitForExit()
         $application = $null

@@ -47,6 +47,8 @@ for attempt in 1 2; do
     exit 1
   fi
   echo "Installed application launch #$attempt remained alive for 10 seconds"
+  if [[ "$attempt" == 1 ]]; then mode=seed; else mode=verify; fi
+  python3 scripts/installed-sidecar-persistence.py "$mode" --evidence "$evidence"
   kill "$pid"
   wait "$pid" 2>/dev/null || true
   pid=""
