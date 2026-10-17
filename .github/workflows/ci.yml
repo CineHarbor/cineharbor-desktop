@@ -164,8 +164,51 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  repeat_verified_main:
+  installed:
+    name: Real unsigned install and startup ${{ matrix.name }}
     needs: [quality, frontend, native]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Intel
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - name: macOS Apple Silicon
+            runner: macos-15
+            target: aarch64-apple-darwin
+          - name: Windows x64
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-native-${{ matrix.target }}-${{ github.sha }}-${{ github.run_id }}
+          path: verification
+      - name: Install actual NSIS package and launch twice
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/installed-smoke-windows.ps1 -BundleDir "verification/target/${{ matrix.target }}/release/bundle"
+      - name: Mount real DMG, install .app and launch twice
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash scripts/installed-smoke-macos.sh "verification/target/${{ matrix.target }}/release/bundle"
+      - name: Archive installation evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-installed-${{ matrix.target }}-${{ github.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/cineharbor-installed-smoke/
+          if-no-files-found: warn
+          retention-days: 7
+
+  repeat_verified_main:
+    needs: [quality, frontend, native, installed]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
