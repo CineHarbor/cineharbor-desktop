@@ -41,3 +41,7 @@ This candidate extends those real-install jobs with a live sidecar /health versi
 ## 2026-10-18 patched immutable unit candidate
 
 Dependency manifest candidate advances Desktop from old Core 246411ba/SDK 3ab4ff8/Web 97cf1bf to security-corrected Core dc94a185/SDK 10ce024c/Web c9f76d1c. Core and SDK passed exact-source two main Rust CI runs, Web PR #4 passed quality and production/WASM/browser suite; **Web's own post-merge twice-main CI still must be confirmed**. This does not modify the app's Tauri configuration, approved keys, release version, code signing or any third-party lock. Before acceptance, require the strict full Desktop PR matrix and two final main runs including three real installed-app sidecar health/SQLite persistence checks. Source dependency updates invalidate earlier pinned-unit verification; preserve earlier results as historical. Signing/updater deferred to public release, not waived. RELEASE_READY=false.
+
+## 2026-10-20 Next 15 pinned-install candidate
+
+Desktop main `a1a23017` has now completed twice-green exact native installed suites (39394712495, 39396757969). This new candidate pins Web `d201afb4` with Next 15/Swiper 12 and transitive security patches on top of already twice-verified Core dc94a185/SDK 10ce024c. New Desktop PR CI and two final main installed matrices are mandatory before declaring it installed. Web security audit still has one unpatched `braces` high and no critical, so RELEASE_READY=false and public release remains unauthorized. See `.agnir/evidence/2026-10-20-next15-pinned-unit.md`.
