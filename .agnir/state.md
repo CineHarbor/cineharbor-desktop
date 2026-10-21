@@ -45,3 +45,7 @@ Dependency manifest candidate advances Desktop from old Core 246411ba/SDK 3ab4ff
 ## 2026-10-20 Next 15 pinned-install candidate
 
 Desktop main `a1a23017` has now completed twice-green exact native installed suites (39394712495, 39396757969). This new candidate pins Web `d201afb4` with Next 15/Swiper 12 and transitive security patches on top of already twice-verified Core dc94a185/SDK 10ce024c. New Desktop PR CI and two final main installed matrices are mandatory before declaring it installed. Web security audit still has one unpatched `braces` high and no critical, so RELEASE_READY=false and public release remains unauthorized. See `.agnir/evidence/2026-10-20-next15-pinned-unit.md`.
+
+## 2026-10-21 final user-path Web repin candidate
+
+Web PR #6 (movie/series addon catalog preview → meta+stream hydration) was fully green in PR CI 39563268674 and squash merged to Web `843f2d1fb15bf11ab7c777d5c6e5f7ff66c771f0`. Desktop candidate now pins this Web source, keeping Core dc94a185 and SDK 10ce024c. Web main CI 39564179775 and its required second independent run were pending at this checkpoint. The previous Desktop PR #6 native install run 39398766723 proves only the old d201afb Web graph, NOT the new one. Run full new PR CI and two exact main three-OS installed sidecar/SQLite suites before acceptance. Security audit remains red for unpatched Next-PWA braces high; signing deferred and release_ready=false.

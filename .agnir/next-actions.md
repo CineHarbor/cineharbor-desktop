@@ -1,7 +1,7 @@
-# cineharbor-desktop Next Actions — Next15 source integration 2026-10-20
+# cineharbor-desktop Next Actions — 2026-10-21
 
-1. Complete Web `d201afb4` main quality/WASM/runtime CI twice. Its unresolved `braces@3.0.3` high is a visible blocker, not proof of secure release; do not declare a passed full audit.
-2. Verify this Desktop candidate's pinned Web/Core/SDK integration with full three-platform PR CI, real NSIS/DMG installation, sidecar /health, config/SQLite marker persistence on restart. Fix actual failures, then merge and require two complete fresh main runs.
-3. After evidence-bound native CI, request manual GUI playback/Live/download/profile acceptance on exact verified immutable installer artifacts, as instructed by Principal; no official signed distribution.
-4. Continue audited remediation/impact classification of remaining Web Next-PWA `braces`, Desktop Rust maintenance/unsound warnings, legacy API consumers, production addon service and license/brand gates.
-5. Only at publicly authorized release phase perform formal signing/notarization and real signed updater/data-retention upgrade. RELEASE_READY=false; PUBLIC_RELEASE_EXECUTED=false.
+1. Confirm Web 843f2d1f has two complete exact main CI runs (first 39564179775 in progress at checkpoint), while keeping the open braces high advisory visible and full audit red.
+2. Verify this precise Desktop Web 843f2d1f / Core dc94a185 / SDK 10ce024c graph using all three native unsigned installers, their actual Windows/macOS installed startup, sidecar health/config and SQLite persistence; merge PR #6 only after all required jobs pass.
+3. Run two complete fresh Desktop main CI suites on one exact final SHA, including three installed verification runners. Record artifact identifiers and hand off exact unsigned test installers for Principal's manual GUI VOD/Live/download/setting/profile testing.
+4. Audit Desktop/Core content-search-source route separately for preview-only CMS results; verify production/addon/media/download site; remediate or explicitly block security advisory and legal/brand findings. Do not falsely certify public release.
+5. Official signing/notarization and real old-to-new signed updater are deferred to separately authorized publication; RELEASE_READY=false; PUBLIC_RELEASE_EXECUTED=false.
